@@ -2,6 +2,9 @@ import urllib.request
 import json
 import time
 import re
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # =========================================================
 # تنظیمات
@@ -1622,5 +1625,29 @@ def main():
 # شروع برنامه
 # =========================================================
 
+class HealthHandler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(b"AnykarHelpBot is running")
+
+    def log_message(self, format, *args):
+        return
+
+
+def start_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), HealthHandler)
+    print(f"Health server running on port {port}")
+    server.serve_forever()
+
+
 if __name__ == "__main__":
+    web_thread = threading.Thread(
+        target=start_web_server,
+        daemon=True
+    )
+    web_thread.start()
     main()
