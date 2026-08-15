@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 # تنظیمات
 # =========================================================
 
-TOKEN = "977852941:qyI7kowjWCw6aSJCIsVZxL2rUem0g-HgGKc"
+TOKEN = os.environ.get("977852941:qyI7kowjWCw6aSJCIsVZxL2rUem0g-HgGKc")
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
