@@ -1219,6 +1219,3 @@ if __name__ == "__main__":
                 time.sleep(10)
 '''
 
-path = Path("/mnt/data/AnykarHelpBot_Final.txt")
-path.write_text(code, encoding="utf-8")
-print(path)
