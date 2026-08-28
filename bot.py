@@ -2090,7 +2090,94 @@ def main():
                         )
 
                         continue
+                      # ---------------------------------
+                    # ادامه فرآیند پشتیبانی
+                    # ---------------------------------
 
+                    if chat_id in support_sessions:
+
+                        session = support_sessions[chat_id]
+                        step = session["step"]
+
+                        if step == "name":
+
+                            session["name"] = text
+                            session["step"] = "phone"
+
+                            send_message(
+                                chat_id,
+                                "📞 ممنون.\n\n"
+                                "حالا شماره تماس خودت رو وارد کن:"
+                            )
+
+                            continue
+
+
+                        if step == "phone":
+
+                            session["phone"] = text
+                            session["step"] = "service"
+
+                            send_message(
+                                chat_id,
+                                "🔧 شماره تماس ثبت شد.\n\n"
+                                "حالا بگو برای چه خدمتی "
+                                "نیاز به پشتیبانی داری؟\n\n"
+                                "مثلاً: برقکاری، لوله‌کشی، نظافت، "
+                                "اسباب‌کشی و..."
+                            )
+
+                            continue
+
+
+                        if step == "service":
+
+                            session["service"] = text
+                            session["step"] = "problem"
+
+                            send_message(
+                                chat_id,
+                                "📝 حالا مشکل یا درخواستت رو "
+                                "با جزئیات برام بنویس:"
+                            )
+
+                            continue
+
+
+                        if step == "problem":
+
+                            session["problem"] = text
+
+                            support_message = (
+                                "🎧 درخواست پشتیبانی جدید\n\n"
+                                "👤 نام و نام خانوادگی:\n"
+                                f"{session['name']}\n\n"
+                                "📞 شماره تماس:\n"
+                                f"{session['phone']}\n\n"
+                                "🔧 خدمت:\n"
+                                f"{session['service']}\n\n"
+                                "📝 شرح مشکل:\n"
+                                f"{session['problem']}\n\n"
+                                "🆔 Chat ID کاربر:\n"
+                                f"{chat_id}"
+                            )
+
+                            send_message(
+                                ADMIN_CHAT_ID,
+                                support_message
+                            )
+
+                            send_message(
+                                chat_id,
+                                "✅ درخواست پشتیبانی شما ثبت شد.\n\n"
+                                "اطلاعات شما برای پشتیبانی آنی‌کار "
+                                "ارسال شد و در اولین فرصت بررسی می‌شود. 💛",
+                                keyboard
+                            )
+
+                            del support_sessions[chat_id]
+
+                            continue
 
                     # ---------------------------------
                     # FAQ
