@@ -64,7 +64,7 @@ socket.getaddrinfo = _bale_getaddrinfo
 # لینک‌های آنی‌کار
 # =========================================================
 
-ORDER_URL = "https://anykar.ir/categories"
+ORDER_URL = "https://anykar.ir/categories/"
 SPECIALIST_URL = "https://anykar.ir/servicer-registration"
 WORK_URL = "https://anykar.ir/work"
 CUSTOMER_RULES_URL = "https://anykar.ir/rules"
