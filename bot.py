@@ -1835,8 +1835,14 @@ def main():
                         f"chat_id={chat_id} | "
                         f"text={repr(text)}"
                     )
+                    if text == "/myid":
+                        send_message(
+                            chat_id,
+                            f"🆔 Chat ID شما:\n{chat_id}"
+                        )
+                        continue
 
-
+                    
                     # ---------------------------------
                     # START
                     # ---------------------------------
