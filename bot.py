@@ -396,6 +396,7 @@ def start_self_declaration(chat_id):
     )
 
 
+
 def send_self_declaration_to_admin(chat_id):
 
     session = self_declaration_sessions.get(chat_id)
@@ -462,6 +463,7 @@ declaration_text = declaration_text.replace(
             ADMIN_CHAT_ID,
             admin_caption
         )
+
 
 
 def process_self_declaration(chat_id, message):
