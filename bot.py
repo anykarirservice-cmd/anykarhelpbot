@@ -444,7 +444,10 @@ def send_self_declaration_to_admin(chat_id):
         "%Y/%m/%d - %H:%M:%S"
     )
 
+    # =====================================================
     # جایگزینی اطلاعات متخصص داخل متن تعهد
+    # =====================================================
+
     declaration_text = SELF_DECLARATION_TEXT
 
     declaration_text = declaration_text.replace(
@@ -461,6 +464,10 @@ def send_self_declaration_to_admin(chat_id):
         "[میزان سابقه]",
         session["experience"]
     )
+
+    # =====================================================
+    # ساخت متن اطلاعات
+    # =====================================================
 
     admin_caption = (
         "📋 خوداظهاری متخصص جدید\n\n"
@@ -484,14 +491,80 @@ def send_self_declaration_to_admin(chat_id):
         f"{declaration_text}"
     )
 
-    # ارسال عکس سلفی + تمام اطلاعات به صورت یک پیام
+    # =====================================================
+    # ساخت تصویر یکپارچه
+    # =====================================================
+
     if session.get("photo_file_id"):
 
-        send_photo(
-            ADMIN_CHAT_ID,
-            session["photo_file_id"],
-            admin_caption
-        )
+        try:
+
+            # دریافت اطلاعات فایل
+            file_result = get_file(
+                session["photo_file_id"]
+            )
+
+            if (
+                not file_result
+                or not file_result.get("ok")
+                or not file_result.get("result")
+            ):
+
+                send_message(
+                    ADMIN_CHAT_ID,
+                    admin_caption
+                )
+
+                return
+
+            file_path = file_result["result"].get(
+                "file_path"
+            )
+
+            if not file_path:
+
+                send_message(
+                    ADMIN_CHAT_ID,
+                    admin_caption
+                )
+
+                return
+
+            # دانلود عکس سلفی
+            photo_bytes = download_file(
+                file_path
+            )
+
+            # ساخت تصویر نهایی
+            final_image = create_self_declaration_image(
+                photo_bytes,
+                session["name"],
+                session["specialty"],
+                session["experience"],
+                declaration_text,
+                current_time,
+                chat_id
+            )
+
+            # ارسال تصویر نهایی به ادمین
+            send_photo(
+                ADMIN_CHAT_ID,
+                final_image,
+                "📋 خوداظهاری متخصص"
+            )
+
+        except Exception as e:
+
+            print(
+                f"[SELF DECLARATION IMAGE ERROR] {repr(e)}"
+            )
+
+            # اگر ساخت تصویر خطا داشت،
+            # اطلاعات متنی همچنان برای ادمین ارسال شود
+            send_message(
+                ADMIN_CHAT_ID,
+                admin_caption
+            )
 
     else:
 
