@@ -2174,32 +2174,25 @@ def main():
                         ""
                     )
 
-                    
-                  # -----------------------------------------
-                  # فرم خوداظهاری متخصص
-                  # -----------------------------------------
+                    # -----------------------------------------
+                    # فرم خوداظهاری متخصص
+                    # -----------------------------------------
 
-                  if text == "📋 خوداظهاری متخصص":
+                    if text == "📋 خوداظهاری متخصص":
+                        start_self_declaration(chat_id)
+                        continue
 
-                      start_self_declaration(
-                          chat_id
-                      )
 
-                      continue
+                    # -----------------------------------------
+                    # ادامه فرم خوداظهاری
+                    # -----------------------------------------
 
-                
-                  # -----------------------------------------
-                  # ادامه فرم خوداظهاری
-                  # -----------------------------------------
-
-                  if chat_id in self_declaration_sessions:
-
-                      process_self_declaration(
-                          chat_id,
-                          message
-                      )
-
-                      continue
+                    if chat_id in self_declaration_sessions:
+                        process_self_declaration(
+                            chat_id,
+                            message
+                        )
+                        continue
 
                     print(
                         f"[MESSAGE] "
