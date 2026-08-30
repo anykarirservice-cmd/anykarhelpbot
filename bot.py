@@ -395,8 +395,6 @@ def start_self_declaration(chat_id):
         "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
     )
 
-
-
 def send_self_declaration_to_admin(chat_id):
 
     session = self_declaration_sessions.get(chat_id)
@@ -407,24 +405,25 @@ def send_self_declaration_to_admin(chat_id):
     current_time = time.strftime(
         "%Y/%m/%d - %H:%M:%S"
     )
+
     # جایگزینی اطلاعات متخصص داخل متن تعهد
-declaration_text = SELF_DECLARATION_TEXT
+    declaration_text = SELF_DECLARATION_TEXT
 
-declaration_text = declaration_text.replace(
-    "[نام و نام خانوادگی]",
-    session["name"]
-)
+    declaration_text = declaration_text.replace(
+        "[نام و نام خانوادگی]",
+        session["name"]
+    )
 
-declaration_text = declaration_text.replace(
-    "[نام تخصص]",
-    session["specialty"]
-)
+    declaration_text = declaration_text.replace(
+        "[نام تخصص]",
+        session["specialty"]
+    )
 
-declaration_text = declaration_text.replace(
-    "[میزان سابقه]",
-    session["experience"]
-)
-    
+    declaration_text = declaration_text.replace(
+        "[میزان سابقه]",
+        session["experience"]
+    )
+
     admin_caption = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
@@ -444,7 +443,7 @@ declaration_text = declaration_text.replace(
         f"{chat_id}\n\n"
 
         "📜 متن تعهد:\n"
-        f"{DECLARATION_TEXT}"
+        f"{declaration_text}"
     )
 
     # ارسال عکس سلفی + تمام اطلاعات به صورت یک پیام
@@ -458,13 +457,10 @@ declaration_text = declaration_text.replace(
 
     else:
 
-        # اگر به هر دلیلی عکس وجود نداشت
         send_message(
             ADMIN_CHAT_ID,
             admin_caption
         )
-
-
 
 def process_self_declaration(chat_id, message):
 
