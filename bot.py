@@ -407,6 +407,23 @@ def send_self_declaration_to_admin(chat_id):
         "%Y/%m/%d - %H:%M:%S"
     )
 
+    declaration_text = SELF_DECLARATION_TEXT
+
+    declaration_text = declaration_text.replace(
+        "[نام و نام خانوادگی]",
+        session["name"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[نام تخصص]",
+        session["specialty"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[میزان سابقه]",
+        session["experience"]
+    )
+
     admin_text = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
@@ -416,7 +433,7 @@ def send_self_declaration_to_admin(chat_id):
         "🔧 تخصص:\n"
         f"{session['specialty']}\n\n"
 
-        "⏱ سابقه:\n"
+        "⏱️ سابقه:\n"
         f"{session['experience']}\n\n"
 
         "📅 تاریخ و ساعت:\n"
@@ -426,7 +443,7 @@ def send_self_declaration_to_admin(chat_id):
         f"{chat_id}\n\n"
 
         "📜 متن تعهد:\n"
-        f"{SELF_DECLARATION_TEXT}"
+        f"{declaration_text}"
     )
 
     # ارسال اطلاعات متنی به ادمین
