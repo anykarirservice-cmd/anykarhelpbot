@@ -530,14 +530,20 @@ def inline_button(text, url):
 # فرم خوداظهاری متخصص
 # =========================================================
 
+# =========================================================
+# فرم خوداظهاری متخصص
+# =========================================================
+
 def start_self_declaration(chat_id):
 
     self_declaration_sessions[chat_id] = {
         "step": "name",
         "name": "",
+        "national_id": "",
+        "phone": "",
+        "address": "",
         "specialty": "",
-        "experience": "",
-        "photo_file_id": ""
+        "experience": ""
     }
 
     send_message(
@@ -545,7 +551,6 @@ def start_self_declaration(chat_id):
         "📝 خوداظهاری متخصص\n\n"
         "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
     )
-
 def send_self_declaration_to_admin(chat_id):
 
     session = self_declaration_sessions.get(chat_id)
@@ -715,7 +720,138 @@ def process_self_declaration(chat_id, message):
 
             return True
 
+        if step == "name":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً نام و نام خانوادگی رو وارد کن."
+            )
+
+            return True
+
         session["name"] = text
+        session["step"] = "national_id"
+
+        send_message(
+            chat_id,
+            "🪪 لطفاً کد ملی خودت رو وارد کن:"
+        )
+
+        return True
+        if step == "name":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً نام و نام خانوادگی رو وارد کن."
+            )
+
+            return True
+
+        session["name"] = text
+        session["step"] = "national_id"
+
+        send_message(
+            chat_id,
+            "🪪 لطفاً کد ملی خودت رو وارد کن:"
+        )
+
+        return True
+        
+    # -----------------------------------------
+    # کد ملی
+    # -----------------------------------------
+
+    if step == "national_id":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً کد ملی رو وارد کن."
+            )
+
+            return True
+
+        session["national_id"] = text
+        session["step"] = "phone"
+
+        send_message(
+            chat_id,
+            "📱 لطفاً شماره تماسی که با آن در آنی‌کار ثبت‌نام کرده‌اید را وارد کنید:"
+        )
+
+        return True
+
+    # -----------------------------------------
+    # کد ملی
+    # -----------------------------------------
+
+    if step == "national_id":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً کد ملی رو وارد کن."
+            )
+
+            return True
+
+        session["national_id"] = text
+        session["step"] = "phone"
+
+        send_message(
+            chat_id,
+            "📱 لطفاً شماره تماسی که با آن در آنی‌کار ثبت‌نام کرده‌اید را وارد کنید:"
+        )
+
+        return True
+
+    # -----------------------------------------
+    # آدرس دقیق محل سکونت
+    # -----------------------------------------
+
+    if step == "address":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً آدرس دقیق محل سکونت رو وارد کن."
+            )
+
+            return True
+
+        session["address"] = text
         session["step"] = "specialty"
 
         send_message(
@@ -726,7 +862,6 @@ def process_self_declaration(chat_id, message):
         )
 
         return True
-
     # -----------------------------------------
     # تخصص
     # -----------------------------------------
