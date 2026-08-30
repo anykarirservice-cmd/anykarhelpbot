@@ -35,18 +35,16 @@ support_sessions = {}
 # =========================================================
 # فرم خوداظهاری متخصص
 # =========================================================
-
-self_declaration_sessions = {}
-
 SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
 
-اینجانب [نام و نام خانوادگی] با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
+اینجانب [نام و نام خانوادگی] با کد ملی [کد ملی] و شماره تماس ثبت‌شده در آنی‌کار [شماره تماس]، با آدرس دقیق محل سکونت [آدرس دقیق محل سکونت]، با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
 
 همچنین متعهد می‌شوم خدمات اعلام‌شده را با رعایت اصول فنی و حرفه‌ای انجام داده و مسئولیت هرگونه قصور، اشتباه، تخلف، خسارت مالی یا جانی و همچنین خسارات وارده به اموال مشتری که ناشی از عملکرد، اقدام یا عدم رعایت اصول فنی از سوی اینجانب باشد، بر عهده اینجانب بوده و موظف به جبران خسارت وارده مطابق قوانین و مقررات مربوط خواهم بود.
 
 اینجانب آگاه هستم که صرف ثبت این خوداظهاری به منزله تأیید تخصص یا صلاحیت حرفه‌ای از سوی آنی‌کار نبوده و صحت ادعاها و مسئولیت عملکرد حرفه‌ای بر عهده اینجانب می‌باشد.
 
 ☑️ اینجانب متن فوق را به‌طور کامل مطالعه کرده و با تأیید آن، صحت اطلاعات و مسئولیت‌های مندرج در این تعهدنامه را می‌پذیرم."""
+
 # =========================================================
 # اجبار DNS بله روی IP مشخص
 # =========================================================
@@ -548,6 +546,10 @@ def start_self_declaration(chat_id):
         "📝 خوداظهاری متخصص\n\n"
         "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
     )
+# =========================================================
+# ارسال خوداظهاری به ادمین
+# =========================================================
+
 def send_self_declaration_to_admin(chat_id):
 
     session = self_declaration_sessions.get(chat_id)
@@ -560,7 +562,7 @@ def send_self_declaration_to_admin(chat_id):
     )
 
     # =====================================================
-    # جایگزینی اطلاعات متخصص داخل متن تعهد
+    # جایگزینی اطلاعات داخل متن تعهد
     # =====================================================
 
     declaration_text = SELF_DECLARATION_TEXT
@@ -568,6 +570,21 @@ def send_self_declaration_to_admin(chat_id):
     declaration_text = declaration_text.replace(
         "[نام و نام خانوادگی]",
         session["name"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[کد ملی]",
+        session["national_id"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[شماره تماس]",
+        session["phone"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[آدرس دقیق محل سکونت]",
+        session["address"]
     )
 
     declaration_text = declaration_text.replace(
@@ -581,19 +598,28 @@ def send_self_declaration_to_admin(chat_id):
     )
 
     # =====================================================
-    # ساخت متن اطلاعات
+    # اطلاعات کامل برای ادمین
     # =====================================================
 
-    admin_caption = (
+    admin_text = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
         "👤 نام و نام خانوادگی:\n"
         f"{session['name']}\n\n"
 
+        "🪪 کد ملی:\n"
+        f"{session['national_id']}\n\n"
+
+        "📱 شماره تماس ثبت‌شده در آنی‌کار:\n"
+        f"{session['phone']}\n\n"
+
+        "📍 آدرس دقیق محل سکونت:\n"
+        f"{session['address']}\n\n"
+
         "🔧 تخصص:\n"
         f"{session['specialty']}\n\n"
 
-        "⏱️ سابقه:\n"
+        "⏱️ سابقه کار:\n"
         f"{session['experience']}\n\n"
 
         "📅 تاریخ و ساعت:\n"
@@ -606,87 +632,10 @@ def send_self_declaration_to_admin(chat_id):
         f"{declaration_text}"
     )
 
-    # =====================================================
-    # ساخت تصویر یکپارچه
-    # =====================================================
-
-    if session.get("photo_file_id"):
-
-        try:
-
-            # دریافت اطلاعات فایل
-            file_result = get_file(
-                session["photo_file_id"]
-            )
-
-            if (
-                not file_result
-                or not file_result.get("ok")
-                or not file_result.get("result")
-            ):
-
-                send_message(
-                    ADMIN_CHAT_ID,
-                    admin_caption
-                )
-
-                return
-
-            file_path = file_result["result"].get(
-                "file_path"
-            )
-
-            if not file_path:
-
-                send_message(
-                    ADMIN_CHAT_ID,
-                    admin_caption
-                )
-
-                return
-
-            # دانلود عکس سلفی
-            photo_bytes = download_file(
-                file_path
-            )
-
-            # ساخت تصویر نهایی
-            final_image = create_self_declaration_image(
-                photo_bytes,
-                session["name"],
-                session["specialty"],
-                session["experience"],
-                declaration_text,
-                current_time,
-                chat_id
-            )
-
-            # ارسال تصویر نهایی به ادمین
-            send_photo(
-                ADMIN_CHAT_ID,
-                final_image,
-                "📋 خوداظهاری متخصص"
-            )
-
-        except Exception as e:
-
-            print(
-                f"[SELF DECLARATION IMAGE ERROR] {repr(e)}"
-            )
-
-            # اگر ساخت تصویر خطا داشت،
-            # اطلاعات متنی همچنان برای ادمین ارسال شود
-            send_message(
-                ADMIN_CHAT_ID,
-                admin_caption
-            )
-
-    else:
-
-        send_message(
-            ADMIN_CHAT_ID,
-            admin_caption
-        )
+    send_message(
+        ADMIN_CHAT_ID,
+        admin_text
+    )
 
 def process_self_declaration(chat_id, message):
 
@@ -901,15 +850,62 @@ def process_self_declaration(chat_id, message):
             return True
 
         session["experience"] = text
-        session["step"] = "photo"
+
+        # ساخت متن تعهد با اطلاعات واردشده
+        declaration_text = SELF_DECLARATION_TEXT
+
+        declaration_text = declaration_text.replace(
+            "[نام و نام خانوادگی]",
+            session["name"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[کد ملی]",
+            session["national_id"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[شماره تماس]",
+            session["phone"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[آدرس دقیق محل سکونت]",
+            session["address"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[نام تخصص]",
+            session["specialty"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[میزان سابقه]",
+            session["experience"]
+        )
+
+        session["step"] = "confirmation"
 
         send_message(
             chat_id,
-            "📸 حالا یک عکس سلفی واضح از خودت ارسال کن."
+            "📜 متن تعهد و خوداظهاری متخصص\n\n"
+            + declaration_text
+            + "\n\n"
+            "اگر متن رو کامل مطالعه کردی و قبولش داری، "
+            "دکمه زیر رو بزن:",
+            {
+                "keyboard": [
+                    [
+                        {
+                            "text": "✅ تأیید و ارسال"
+                        }
+                    ]
+                ],
+                "resize_keyboard": True
+            }
         )
 
         return True
-
     # -----------------------------------------
     # عکس سلفی
     # -----------------------------------------
@@ -1000,7 +996,7 @@ def process_self_declaration(chat_id, message):
             send_message(
                 chat_id,
                 "✅ اطلاعات خوداظهاری شما ثبت شد.\n\n"
-                "اطلاعات و عکس برای پشتیبانی آنی‌کار "
+                "اطلاعات برای پشتیبانی آنی‌کار "
                 "ارسال شد. 💛",
                 main_keyboard()
             )
