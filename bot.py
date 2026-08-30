@@ -407,24 +407,7 @@ def send_self_declaration_to_admin(chat_id):
         "%Y/%m/%d - %H:%M:%S"
     )
 
-    declaration_text = SELF_DECLARATION_TEXT
-
-    declaration_text = declaration_text.replace(
-        "[نام و نام خانوادگی]",
-        session["name"]
-    )
-
-    declaration_text = declaration_text.replace(
-        "[نام تخصص]",
-        session["specialty"]
-    )
-
-    declaration_text = declaration_text.replace(
-        "[میزان سابقه]",
-        session["experience"]
-    )
-
-    admin_text = (
+    admin_caption = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
         "👤 نام و نام خانوادگی:\n"
@@ -443,23 +426,24 @@ def send_self_declaration_to_admin(chat_id):
         f"{chat_id}\n\n"
 
         "📜 متن تعهد:\n"
-        f"{declaration_text}"
+        f"{SELF_DECLARATION_TEXT}"
     )
 
-    # ارسال اطلاعات متنی به ادمین
-    send_message(
-        ADMIN_CHAT_ID,
-        admin_text
-    )
-
-    # ارسال عکس سلفی به ادمین
-    if session["photo_file_id"]:
+    # ارسال عکس سلفی + تمام اطلاعات به صورت یک پیام
+    if session.get("photo_file_id"):
 
         send_photo(
             ADMIN_CHAT_ID,
             session["photo_file_id"],
-            "📸 عکس سلفی متخصص\n"
-            f"🆔 Chat ID: {chat_id}"
+            admin_caption
+        )
+
+    else:
+
+        # اگر به هر دلیلی عکس وجود نداشت
+        send_message(
+            ADMIN_CHAT_ID,
+            admin_caption
         )
 
 
