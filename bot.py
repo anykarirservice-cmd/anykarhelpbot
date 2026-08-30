@@ -406,7 +406,24 @@ def send_self_declaration_to_admin(chat_id):
     current_time = time.strftime(
         "%Y/%m/%d - %H:%M:%S"
     )
+    # جایگزینی اطلاعات متخصص داخل متن تعهد
+declaration_text = SELF_DECLARATION_TEXT
 
+declaration_text = declaration_text.replace(
+    "[نام و نام خانوادگی]",
+    session["name"]
+)
+
+declaration_text = declaration_text.replace(
+    "[نام تخصص]",
+    session["specialty"]
+)
+
+declaration_text = declaration_text.replace(
+    "[میزان سابقه]",
+    session["experience"]
+)
+    
     admin_caption = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
@@ -426,7 +443,7 @@ def send_self_declaration_to_admin(chat_id):
         f"{chat_id}\n\n"
 
         "📜 متن تعهد:\n"
-        f"{SELF_DECLARATION_TEXT}"
+        f"{DECLARATION_TEXT}"
     )
 
     # ارسال عکس سلفی + تمام اطلاعات به صورت یک پیام
