@@ -29,6 +29,22 @@ BALE_NEW_IP = "2.189.68.110"
 ADMIN_CHAT_ID = 121442435
 
 support_sessions = {}
+
+# =========================================================
+# فرم خوداظهاری متخصص
+# =========================================================
+
+self_declaration_sessions = {}
+
+SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
+
+اینجانب [نام و نام خانوادگی] با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
+
+همچنین متعهد می‌شوم خدمات اعلام‌شده را با رعایت اصول فنی و حرفه‌ای انجام داده و مسئولیت هرگونه قصور، اشتباه، تخلف، خسارت مالی یا جانی و همچنین خسارات وارده به اموال مشتری که ناشی از عملکرد، اقدام یا عدم رعایت اصول فنی از سوی اینجانب باشد، بر عهده اینجانب بوده و موظف به جبران خسارت وارده مطابق قوانین و مقررات مربوط خواهم بود.
+
+اینجانب آگاه هستم که صرف ثبت این خوداظهاری به منزله تأیید تخصص یا صلاحیت حرفه‌ای از سوی آنی‌کار نبوده و صحت ادعاها و مسئولیت عملکرد حرفه‌ای بر عهده اینجانب می‌باشد.
+
+☑️ اینجانب متن فوق را به‌طور کامل مطالعه کرده و با تأیید آن، صحت اطلاعات و مسئولیت‌های مندرج در این تعهدنامه را می‌پذیرم."""
 # =========================================================
 # اجبار DNS بله روی IP مشخص
 # =========================================================
@@ -209,6 +225,47 @@ def send_message(chat_id, text, keyboard=None):
         )
 
     return result
+# =========================================================
+# ارسال عکس
+# =========================================================
+
+def send_photo(chat_id, photo, caption=None):
+
+    data = {
+        "chat_id": chat_id,
+        "photo": photo
+    }
+
+    if caption:
+        data["caption"] = caption
+
+    result = api_request(
+        "sendPhoto",
+        data,
+        retries=3
+    )
+
+    if result is None:
+
+        print(
+            f"[SEND PHOTO FAILED] chat_id={chat_id}"
+        )
+
+    elif not result.get("ok"):
+
+        print(
+            f"[SEND PHOTO BALE ERROR] "
+            f"chat_id={chat_id} | "
+            f"{result}"
+        )
+
+    else:
+
+        print(
+            f"[SEND PHOTO OK] chat_id={chat_id}"
+        )
+
+    return result    
 
 
 # =========================================================
@@ -263,6 +320,14 @@ def main_keyboard():
 
     return {
 
+        # =========================================================
+# کیبورد اصلی
+# =========================================================
+
+def main_keyboard():
+
+    return {
+
         "keyboard": [
 
             [
@@ -271,22 +336,26 @@ def main_keyboard():
             ],
 
             [
-                {"text": "📱 نحوه کار"},
-                {"text": "💰 قیمت خدمات"}
+                {"text": "📋 خوداظهاری متخصص"},
+                {"text": "📱 نحوه کار"}
             ],
 
             [
-                {"text": "🛡️ پرداخت و ضمانت"},
-                {"text": "📜 قوانین مشتری"}
+                {"text": "💰 قیمت خدمات"},
+                {"text": "🛡️ پرداخت و ضمانت"}
             ],
 
             [
-                {"text": "📋 قوانین متخصص"},
-                {"text": "🎧 پشتیبانی"}
+                {"text": "📜 قوانین مشتری"},
+                {"text": "📋 قوانین متخصص"}
             ],
 
             [
-                {"text": "❓ سوالات متداول"},
+                {"text": "🎧 پشتیبانی"},
+                {"text": "❓ سوالات متداول"}
+            ],
+
+            [
                 {"text": "ℹ️ راهنما"}
             ]
         ],
@@ -314,7 +383,285 @@ def inline_button(text, url):
         ]
     }
 
+# =========================================================
+# فرم خوداظهاری متخصص
+# =========================================================
 
+def start_self_declaration(chat_id):
+
+    self_declaration_sessions[chat_id] = {
+        "step": "name",
+        "name": "",
+        "specialty": "",
+        "experience": "",
+        "photo_file_id": ""
+    }
+
+    send_message(
+        chat_id,
+        "📝 خوداظهاری متخصص\n\n"
+        "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
+    )
+
+
+def send_self_declaration_to_admin(chat_id):
+
+    session = self_declaration_sessions.get(chat_id)
+
+    if not session:
+        return
+
+    current_time = time.strftime(
+        "%Y/%m/%d - %H:%M:%S"
+    )
+
+    admin_text = (
+        "📋 خوداظهاری متخصص جدید\n\n"
+
+        "👤 نام و نام خانوادگی:\n"
+        f"{session['name']}\n\n"
+
+        "🔧 تخصص:\n"
+        f"{session['specialty']}\n\n"
+
+        "⏱ سابقه:\n"
+        f"{session['experience']}\n\n"
+
+        "📅 تاریخ و ساعت:\n"
+        f"{current_time}\n\n"
+
+        "🆔 شناسه بله:\n"
+        f"{chat_id}\n\n"
+
+        "📜 متن تعهد:\n"
+        f"{SELF_DECLARATION_TEXT}"
+    )
+
+    # ارسال اطلاعات متنی به ادمین
+    send_message(
+        ADMIN_CHAT_ID,
+        admin_text
+    )
+
+    # ارسال عکس سلفی به ادمین
+    if session["photo_file_id"]:
+
+        send_photo(
+            ADMIN_CHAT_ID,
+            session["photo_file_id"],
+            "📸 عکس سلفی متخصص\n"
+            f"🆔 Chat ID: {chat_id}"
+        )
+
+
+def process_self_declaration(chat_id, message):
+
+    session = self_declaration_sessions.get(chat_id)
+
+    if not session:
+        return False
+
+    step = session["step"]
+
+    # -----------------------------------------
+    # نام و نام خانوادگی
+    # -----------------------------------------
+
+    if step == "name":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً نام و نام خانوادگی رو وارد کن."
+            )
+
+            return True
+
+        session["name"] = text
+        session["step"] = "specialty"
+
+        send_message(
+            chat_id,
+            "🔧 حالا تخصصت رو وارد کن:\n\n"
+            "مثلاً: نقاشی ساختمان، کاشی‌کاری، "
+            "لوله‌کشی، برقکاری و..."
+        )
+
+        return True
+
+    # -----------------------------------------
+    # تخصص
+    # -----------------------------------------
+
+    if step == "specialty":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً تخصص رو وارد کن."
+            )
+
+            return True
+
+        session["specialty"] = text
+        session["step"] = "experience"
+
+        send_message(
+            chat_id,
+            "⏱ میزان سابقه فعالیتت رو وارد کن:\n\n"
+            "مثلاً: ۵ سال"
+        )
+
+        return True
+
+    # -----------------------------------------
+    # سابقه
+    # -----------------------------------------
+
+    if step == "experience":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً میزان سابقه فعالیتت رو وارد کن."
+            )
+
+            return True
+
+        session["experience"] = text
+        session["step"] = "photo"
+
+        send_message(
+            chat_id,
+            "📸 حالا یک عکس سلفی واضح از خودت ارسال کن."
+        )
+
+        return True
+
+    # -----------------------------------------
+    # عکس سلفی
+    # -----------------------------------------
+
+    if step == "photo":
+
+        photos = message.get(
+            "photo",
+            []
+        )
+
+        if not photos:
+
+            send_message(
+                chat_id,
+                "📸 لطفاً عکس سلفی رو به صورت عکس ارسال کن."
+            )
+
+            return True
+
+        # بزرگ‌ترین نسخه عکس
+        photo = photos[-1]
+
+        session["photo_file_id"] = photo.get(
+            "file_id",
+            ""
+        )
+
+        session["step"] = "confirmation"
+
+        send_message(
+            chat_id,
+            "📜 متن تعهد و خوداظهاری متخصص\n\n"
+            + SELF_DECLARATION_TEXT
+            + "\n\n"
+            "اگر متن رو کامل مطالعه کردی و قبولش داری، "
+            "دکمه زیر رو بزن:",
+            {
+                "keyboard": [
+                    [
+                        {
+                            "text": "✅ تأیید و ارسال"
+                        }
+                    ],
+                    [
+                        {
+                            "text": "❌ انصراف"
+                        }
+                    ]
+                ],
+                "resize_keyboard": True
+            }
+        )
+
+        return True
+
+    # -----------------------------------------
+    # تأیید نهایی
+    # -----------------------------------------
+
+    if step == "confirmation":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if text == "❌ انصراف":
+
+            del self_declaration_sessions[chat_id]
+
+            send_message(
+                chat_id,
+                "❌ فرم خوداظهاری لغو شد.",
+                main_keyboard()
+            )
+
+            return True
+
+        if text == "✅ تأیید و ارسال":
+
+            send_self_declaration_to_admin(
+                chat_id
+            )
+
+            del self_declaration_sessions[chat_id]
+
+            send_message(
+                chat_id,
+                "✅ اطلاعات خوداظهاری شما ثبت شد.\n\n"
+                "اطلاعات و عکس برای پشتیبانی آنی‌کار "
+                "ارسال شد. 💛",
+                main_keyboard()
+            )
+
+            return True
+
+        send_message(
+            chat_id,
+            "لطفاً یکی از گزینه‌های زیر رو انتخاب کن."
+        )
+
+        return True
+
+    return True
+    
 # =========================================================
 # مغز پاسخ‌گویی
 # =========================================================
@@ -1835,6 +2182,32 @@ def main():
                         ""
                     )
 
+                    
+                    # -----------------------------------------
+                    # فرم خوداظهاری متخصص
+                    # -----------------------------------------
+
+                    if text == "📋 خوداظهاری متخصص":
+
+                        start_self_declaration(
+                            chat_id
+                        )
+
+                        continue
+
+                
+                   # -----------------------------------------
+                   # ادامه فرم خوداظهاری
+                   # -----------------------------------------
+
+                   if chat_id in self_declaration_sessions:
+
+                      process_self_declaration(
+                          chat_id,
+                          message
+                      )
+
+                      continue
 
                     print(
                         f"[MESSAGE] "
