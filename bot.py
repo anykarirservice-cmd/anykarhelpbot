@@ -227,9 +227,6 @@ def send_message(chat_id, text, keyboard=None):
         )
 
     return result
-# =========================================================
-# ارسال عکس
-# =========================================================
 
 # =========================================================
 # ارسال عکس
@@ -788,6 +785,35 @@ def process_self_declaration(chat_id, message):
         send_message(
             chat_id,
             "📱 لطفاً شماره تماسی که با آن در آنی‌کار ثبت‌نام کرده‌اید را وارد کنید:"
+        )
+
+        return True
+        # -----------------------------------------
+    # شماره تماس
+    # -----------------------------------------
+
+    if step == "phone":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً شماره تماس ثبت‌شده در آنی‌کار رو وارد کن."
+            )
+
+            return True
+
+        session["phone"] = text
+        session["step"] = "address"
+
+        send_message(
+            chat_id,
+            "📍 لطفاً آدرس دقیق محل سکونت خودت رو وارد کن:"
         )
 
         return True
