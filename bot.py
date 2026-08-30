@@ -34,11 +34,9 @@ support_sessions = {}
 # فرم خوداظهاری متخصص
 # =========================================================
 
-self_declaration_sessions = {}
-
 SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
 
-اینجانب [نام و نام خانوادگی] با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
+اینجانب [نام و نام خانوادگی] با کد ملی [کد ملی] و شماره تماس ثبت‌شده در آنی‌کار [شماره تماس]، با آدرس دقیق محل سکونت [آدرس دقیق محل سکونت]، با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
 
 همچنین متعهد می‌شوم خدمات اعلام‌شده را با رعایت اصول فنی و حرفه‌ای انجام داده و مسئولیت هرگونه قصور، اشتباه، تخلف، خسارت مالی یا جانی و همچنین خسارات وارده به اموال مشتری که ناشی از عملکرد، اقدام یا عدم رعایت اصول فنی از سوی اینجانب باشد، بر عهده اینجانب بوده و موظف به جبران خسارت وارده مطابق قوانین و مقررات مربوط خواهم بود.
 
@@ -384,9 +382,11 @@ def start_self_declaration(chat_id):
     self_declaration_sessions[chat_id] = {
         "step": "name",
         "name": "",
+        "national_id": "",
+        "phone": "",
+        "address": "",
         "specialty": "",
-        "experience": "",
-        "photo_file_id": ""
+        "experience": ""
     }
 
     send_message(
@@ -394,8 +394,7 @@ def start_self_declaration(chat_id):
         "📝 خوداظهاری متخصص\n\n"
         "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
     )
-
-
+    
 def send_self_declaration_to_admin(chat_id):
 
     session = self_declaration_sessions.get(chat_id)
@@ -407,11 +406,30 @@ def send_self_declaration_to_admin(chat_id):
         "%Y/%m/%d - %H:%M:%S"
     )
 
+    # =====================================================
+    # جایگزینی اطلاعات متخصص داخل متن تعهد
+    # =====================================================
+
     declaration_text = SELF_DECLARATION_TEXT
 
     declaration_text = declaration_text.replace(
         "[نام و نام خانوادگی]",
         session["name"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[کد ملی]",
+        session["national_id"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[شماره تماس]",
+        session["phone"]
+    )
+
+    declaration_text = declaration_text.replace(
+        "[آدرس دقیق محل سکونت]",
+        session["address"]
     )
 
     declaration_text = declaration_text.replace(
@@ -424,16 +442,29 @@ def send_self_declaration_to_admin(chat_id):
         session["experience"]
     )
 
+    # =====================================================
+    # اطلاعات کامل برای ادمین
+    # =====================================================
+
     admin_text = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
         "👤 نام و نام خانوادگی:\n"
         f"{session['name']}\n\n"
 
+        "🪪 کد ملی:\n"
+        f"{session['national_id']}\n\n"
+
+        "📱 شماره تماس ثبت‌شده در آنی‌کار:\n"
+        f"{session['phone']}\n\n"
+
+        "📍 آدرس دقیق محل سکونت:\n"
+        f"{session['address']}\n\n"
+
         "🔧 تخصص:\n"
         f"{session['specialty']}\n\n"
 
-        "⏱️ سابقه:\n"
+        "⏱️ سابقه کار:\n"
         f"{session['experience']}\n\n"
 
         "📅 تاریخ و ساعت:\n"
@@ -446,22 +477,11 @@ def send_self_declaration_to_admin(chat_id):
         f"{declaration_text}"
     )
 
-    # ارسال اطلاعات متنی به ادمین
+    # ارسال اطلاعات کامل به ادمین
     send_message(
         ADMIN_CHAT_ID,
         admin_text
     )
-
-    # ارسال عکس سلفی به ادمین
-    if session["photo_file_id"]:
-
-        send_photo(
-            ADMIN_CHAT_ID,
-            session["photo_file_id"],
-            "📸 عکس سلفی متخصص\n"
-            f"🆔 Chat ID: {chat_id}"
-        )
-
 
 def process_self_declaration(chat_id, message):
 
@@ -670,6 +690,7 @@ def process_self_declaration(chat_id, message):
         return True
 
     return True
+
     
 # =========================================================
 # مغز پاسخ‌گویی
