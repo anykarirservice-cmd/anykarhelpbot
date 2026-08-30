@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 # تنظیمات Bale
 # =========================================================
 
-TOKEN = "977852941:qyI7kowjcW6aSJCIsVZxL2rUem0g-HgGKc"
+TOKEN = "977852941:VxYGRdYZlZaUo7htQS4X5TZLk_VKRKWKnHg"
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
