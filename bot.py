@@ -720,21 +720,6 @@ def process_self_declaration(chat_id, message):
 
             return True
 
-        if step == "name":
-
-        text = message.get(
-            "text",
-            ""
-        ).strip()
-
-        if not text:
-
-            send_message(
-                chat_id,
-                "❌ لطفاً نام و نام خانوادگی رو وارد کن."
-            )
-
-            return True
 
         session["name"] = text
         session["step"] = "national_id"
