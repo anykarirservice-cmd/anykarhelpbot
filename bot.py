@@ -267,9 +267,45 @@ def send_photo(chat_id, photo, caption=None):
             f"[SEND PHOTO OK] chat_id={chat_id}"
         )
 
-    return result    
+    return result 
+    
+# =========================================================
+# دریافت فایل عکس از بله
+# =========================================================
 
+def get_file(file_id):
 
+    data = {
+        "file_id": file_id
+    }
+
+    return api_request(
+        "getFile",
+        data,
+        retries=3
+    )
+# =========================================================
+# دانلود فایل از بله
+# =========================================================
+
+def download_file(file_path):
+
+    url = f"{BASE_URL.replace('/bot' + BOT_TOKEN, '')}/file/bot{BOT_TOKEN}/{file_path}"
+
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "AnykarHelpBot/1.0"
+        }
+    )
+
+    with urllib.request.urlopen(
+        request,
+        timeout=35
+    ) as response:
+
+        return response.read()
+        
 # =========================================================
 # نرمال‌سازی متن فارسی
 # =========================================================
