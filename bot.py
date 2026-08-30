@@ -7,6 +7,8 @@ import socket
 import threading
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 
 # =========================================================
