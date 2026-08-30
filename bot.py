@@ -231,7 +231,117 @@ def send_message(chat_id, text, keyboard=None):
 # ارسال عکس
 # =========================================================
 
+# =========================================================
+# ارسال عکس
+# =========================================================
+
 def send_photo(chat_id, photo, caption=None):
+
+    # اگر photo یک فایل/BytesIO باشد
+    if hasattr(photo, "read"):
+
+        photo.seek(0)
+
+        url = f"{BASE_URL}/sendPhoto"
+
+        boundary = "----AnykarBoundary123456"
+
+        body = bytearray()
+
+        def add_field(name, value):
+
+            body.extend(
+                f"--{boundary}\r\n".encode()
+            )
+
+            body.extend(
+                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode()
+            )
+
+            body.extend(
+                str(value).encode()
+            )
+
+            body.extend(b"\r\n")
+
+        add_field(
+            "chat_id",
+            chat_id
+        )
+
+        if caption:
+
+            add_field(
+                "caption",
+                caption
+            )
+
+        body.extend(
+            f"--{boundary}\r\n".encode()
+        )
+
+        body.extend(
+            b'Content-Disposition: form-data; name="photo"; filename="self_declaration.jpg"\r\n'
+        )
+
+        body.extend(
+            b"Content-Type: image/jpeg\r\n\r\n"
+        )
+
+        body.extend(
+            photo.read()
+        )
+
+        body.extend(b"\r\n")
+
+        body.extend(
+            f"--{boundary}--\r\n".encode()
+        )
+
+        request = urllib.request.Request(
+            url,
+            data=bytes(body),
+            headers={
+                "Content-Type":
+                f"multipart/form-data; boundary={boundary}",
+                "User-Agent":
+                "AnykarHelpBot/1.0"
+            },
+            method="POST"
+        )
+
+        try:
+
+            with urllib.request.urlopen(
+                request,
+                timeout=60
+            ) as response:
+
+                raw = response.read().decode(
+                    "utf-8"
+                )
+
+                result = json.loads(raw)
+
+                print(
+                    f"[SEND PHOTO FILE] "
+                    f"ok={result.get('ok')}"
+                )
+
+                return result
+
+        except Exception as e:
+
+            print(
+                f"[SEND PHOTO FILE ERROR] "
+                f"{repr(e)}"
+            )
+
+            return None
+
+    # =====================================================
+    # ارسال عکس با file_id
+    # =====================================================
 
     data = {
         "chat_id": chat_id,
@@ -239,6 +349,7 @@ def send_photo(chat_id, photo, caption=None):
     }
 
     if caption:
+
         data["caption"] = caption
 
     result = api_request(
@@ -250,7 +361,8 @@ def send_photo(chat_id, photo, caption=None):
     if result is None:
 
         print(
-            f"[SEND PHOTO FAILED] chat_id={chat_id}"
+            f"[SEND PHOTO FAILED] "
+            f"chat_id={chat_id}"
         )
 
     elif not result.get("ok"):
@@ -264,10 +376,11 @@ def send_photo(chat_id, photo, caption=None):
     else:
 
         print(
-            f"[SEND PHOTO OK] chat_id={chat_id}"
+            f"[SEND PHOTO OK] "
+            f"chat_id={chat_id}"
         )
 
-    return result 
+    return result
     
 # =========================================================
 # دریافت فایل عکس از بله
