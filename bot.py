@@ -7,8 +7,6 @@ import socket
 import threading
 import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import arabic_reshaper
-from bidi.algorithm import get_display
 
 
 # =========================================================
@@ -35,16 +33,18 @@ support_sessions = {}
 # =========================================================
 # فرم خوداظهاری متخصص
 # =========================================================
+
+self_declaration_sessions = {}
+
 SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
 
-اینجانب [نام و نام خانوادگی] با کد ملی [کد ملی] و شماره تماس ثبت‌شده در آنی‌کار [شماره تماس]، با آدرس دقیق محل سکونت [آدرس دقیق محل سکونت]، با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
+اینجانب [نام و نام خانوادگی] با تخصص [نام تخصص] و سابقه فعالیت اعلام‌شده [میزان سابقه]، ضمن تأیید صحت اطلاعات و اظهارات ثبت‌شده، اعلام می‌نمایم که تخصص، مهارت و سابقه فعالیت مذکور متعلق به اینجانب بوده و مسئولیت صحت کلیه اطلاعات ارائه‌شده بر عهده اینجانب است.
 
 همچنین متعهد می‌شوم خدمات اعلام‌شده را با رعایت اصول فنی و حرفه‌ای انجام داده و مسئولیت هرگونه قصور، اشتباه، تخلف، خسارت مالی یا جانی و همچنین خسارات وارده به اموال مشتری که ناشی از عملکرد، اقدام یا عدم رعایت اصول فنی از سوی اینجانب باشد، بر عهده اینجانب بوده و موظف به جبران خسارت وارده مطابق قوانین و مقررات مربوط خواهم بود.
 
 اینجانب آگاه هستم که صرف ثبت این خوداظهاری به منزله تأیید تخصص یا صلاحیت حرفه‌ای از سوی آنی‌کار نبوده و صحت ادعاها و مسئولیت عملکرد حرفه‌ای بر عهده اینجانب می‌باشد.
 
 ☑️ اینجانب متن فوق را به‌طور کامل مطالعه کرده و با تأیید آن، صحت اطلاعات و مسئولیت‌های مندرج در این تعهدنامه را می‌پذیرم."""
-
 # =========================================================
 # اجبار DNS بله روی IP مشخص
 # =========================================================
@@ -225,118 +225,11 @@ def send_message(chat_id, text, keyboard=None):
         )
 
     return result
-
 # =========================================================
 # ارسال عکس
 # =========================================================
 
 def send_photo(chat_id, photo, caption=None):
-
-    # اگر photo یک فایل/BytesIO باشد
-    if hasattr(photo, "read"):
-
-        photo.seek(0)
-
-        url = f"{BASE_URL}/sendPhoto"
-
-        boundary = "----AnykarBoundary123456"
-
-        body = bytearray()
-
-        def add_field(name, value):
-
-            body.extend(
-                f"--{boundary}\r\n".encode()
-            )
-
-            body.extend(
-                f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode()
-            )
-
-            body.extend(
-                str(value).encode()
-            )
-
-            body.extend(b"\r\n")
-
-        add_field(
-            "chat_id",
-            chat_id
-        )
-
-        if caption:
-
-            add_field(
-                "caption",
-                caption
-            )
-
-        body.extend(
-            f"--{boundary}\r\n".encode()
-        )
-
-        body.extend(
-            b'Content-Disposition: form-data; name="photo"; filename="self_declaration.jpg"\r\n'
-        )
-
-        body.extend(
-            b"Content-Type: image/jpeg\r\n\r\n"
-        )
-
-        body.extend(
-            photo.read()
-        )
-
-        body.extend(b"\r\n")
-
-        body.extend(
-            f"--{boundary}--\r\n".encode()
-        )
-
-        request = urllib.request.Request(
-            url,
-            data=bytes(body),
-            headers={
-                "Content-Type":
-                f"multipart/form-data; boundary={boundary}",
-                "User-Agent":
-                "AnykarHelpBot/1.0"
-            },
-            method="POST"
-        )
-
-        try:
-
-            with urllib.request.urlopen(
-                request,
-                timeout=60
-            ) as response:
-
-                raw = response.read().decode(
-                    "utf-8"
-                )
-
-                result = json.loads(raw)
-
-                print(
-                    f"[SEND PHOTO FILE] "
-                    f"ok={result.get('ok')}"
-                )
-
-                return result
-
-        except Exception as e:
-
-            print(
-                f"[SEND PHOTO FILE ERROR] "
-                f"{repr(e)}"
-            )
-
-            return None
-
-    # =====================================================
-    # ارسال عکس با file_id
-    # =====================================================
 
     data = {
         "chat_id": chat_id,
@@ -344,7 +237,6 @@ def send_photo(chat_id, photo, caption=None):
     }
 
     if caption:
-
         data["caption"] = caption
 
     result = api_request(
@@ -356,8 +248,7 @@ def send_photo(chat_id, photo, caption=None):
     if result is None:
 
         print(
-            f"[SEND PHOTO FAILED] "
-            f"chat_id={chat_id}"
+            f"[SEND PHOTO FAILED] chat_id={chat_id}"
         )
 
     elif not result.get("ok"):
@@ -371,49 +262,12 @@ def send_photo(chat_id, photo, caption=None):
     else:
 
         print(
-            f"[SEND PHOTO OK] "
-            f"chat_id={chat_id}"
+            f"[SEND PHOTO OK] chat_id={chat_id}"
         )
 
-    return result
-    
-# =========================================================
-# دریافت فایل عکس از بله
-# =========================================================
+    return result    
 
-def get_file(file_id):
 
-    data = {
-        "file_id": file_id
-    }
-
-    return api_request(
-        "getFile",
-        data,
-        retries=3
-    )
-# =========================================================
-# دانلود فایل از بله
-# =========================================================
-
-def download_file(file_path):
-
-    url = f"{BASE_URL.replace('/bot' + BOT_TOKEN, '')}/file/bot{BOT_TOKEN}/{file_path}"
-
-    request = urllib.request.Request(
-        url,
-        headers={
-            "User-Agent": "AnykarHelpBot/1.0"
-        }
-    )
-
-    with urllib.request.urlopen(
-        request,
-        timeout=35
-    ) as response:
-
-        return response.read()
-        
 # =========================================================
 # نرمال‌سازی متن فارسی
 # =========================================================
@@ -525,20 +379,14 @@ def inline_button(text, url):
 # فرم خوداظهاری متخصص
 # =========================================================
 
-# =========================================================
-# فرم خوداظهاری متخصص
-# =========================================================
-
 def start_self_declaration(chat_id):
 
     self_declaration_sessions[chat_id] = {
         "step": "name",
         "name": "",
-        "national_id": "",
-        "phone": "",
-        "address": "",
         "specialty": "",
-        "experience": ""
+        "experience": "",
+        "photo_file_id": ""
     }
 
     send_message(
@@ -546,9 +394,7 @@ def start_self_declaration(chat_id):
         "📝 خوداظهاری متخصص\n\n"
         "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
     )
-# =========================================================
-# ارسال خوداظهاری به ادمین
-# =========================================================
+
 
 def send_self_declaration_to_admin(chat_id):
 
@@ -561,30 +407,11 @@ def send_self_declaration_to_admin(chat_id):
         "%Y/%m/%d - %H:%M:%S"
     )
 
-    # =====================================================
-    # جایگزینی اطلاعات داخل متن تعهد
-    # =====================================================
-
     declaration_text = SELF_DECLARATION_TEXT
 
     declaration_text = declaration_text.replace(
         "[نام و نام خانوادگی]",
         session["name"]
-    )
-
-    declaration_text = declaration_text.replace(
-        "[کد ملی]",
-        session["national_id"]
-    )
-
-    declaration_text = declaration_text.replace(
-        "[شماره تماس]",
-        session["phone"]
-    )
-
-    declaration_text = declaration_text.replace(
-        "[آدرس دقیق محل سکونت]",
-        session["address"]
     )
 
     declaration_text = declaration_text.replace(
@@ -597,29 +424,16 @@ def send_self_declaration_to_admin(chat_id):
         session["experience"]
     )
 
-    # =====================================================
-    # اطلاعات کامل برای ادمین
-    # =====================================================
-
     admin_text = (
         "📋 خوداظهاری متخصص جدید\n\n"
 
         "👤 نام و نام خانوادگی:\n"
         f"{session['name']}\n\n"
 
-        "🪪 کد ملی:\n"
-        f"{session['national_id']}\n\n"
-
-        "📱 شماره تماس ثبت‌شده در آنی‌کار:\n"
-        f"{session['phone']}\n\n"
-
-        "📍 آدرس دقیق محل سکونت:\n"
-        f"{session['address']}\n\n"
-
         "🔧 تخصص:\n"
         f"{session['specialty']}\n\n"
 
-        "⏱️ سابقه کار:\n"
+        "⏱️ سابقه:\n"
         f"{session['experience']}\n\n"
 
         "📅 تاریخ و ساعت:\n"
@@ -632,10 +446,22 @@ def send_self_declaration_to_admin(chat_id):
         f"{declaration_text}"
     )
 
+    # ارسال اطلاعات متنی به ادمین
     send_message(
         ADMIN_CHAT_ID,
         admin_text
     )
+
+    # ارسال عکس سلفی به ادمین
+    if session["photo_file_id"]:
+
+        send_photo(
+            ADMIN_CHAT_ID,
+            session["photo_file_id"],
+            "📸 عکس سلفی متخصص\n"
+            f"🆔 Chat ID: {chat_id}"
+        )
+
 
 def process_self_declaration(chat_id, message):
 
@@ -666,128 +492,7 @@ def process_self_declaration(chat_id, message):
 
             return True
 
-
         session["name"] = text
-        session["step"] = "national_id"
-
-        send_message(
-            chat_id,
-            "🪪 لطفاً کد ملی خودت رو وارد کن:"
-        )
-
-        return True
-        
-  
-    # -----------------------------------------
-    # کد ملی
-    # -----------------------------------------
-
-    if step == "national_id":
-
-        text = message.get(
-            "text",
-            ""
-        ).strip()
-
-        if not text:
-
-            send_message(
-                chat_id,
-                "❌ لطفاً کد ملی رو وارد کن."
-            )
-
-            return True
-
-        session["national_id"] = text
-        session["step"] = "phone"
-
-        send_message(
-            chat_id,
-            "📱 لطفاً شماره تماسی که با آن در آنی‌کار ثبت‌نام کرده‌اید را وارد کنید:"
-        )
-
-        return True
-
-    # -----------------------------------------
-    # کد ملی
-    # -----------------------------------------
-
-    if step == "national_id":
-
-        text = message.get(
-            "text",
-            ""
-        ).strip()
-
-        if not text:
-
-            send_message(
-                chat_id,
-                "❌ لطفاً کد ملی رو وارد کن."
-            )
-
-            return True
-
-        session["national_id"] = text
-        session["step"] = "phone"
-
-        send_message(
-            chat_id,
-            "📱 لطفاً شماره تماسی که با آن در آنی‌کار ثبت‌نام کرده‌اید را وارد کنید:"
-        )
-
-        return True
-        # -----------------------------------------
-    # شماره تماس
-    # -----------------------------------------
-
-    if step == "phone":
-
-        text = message.get(
-            "text",
-            ""
-        ).strip()
-
-        if not text:
-
-            send_message(
-                chat_id,
-                "❌ لطفاً شماره تماس ثبت‌شده در آنی‌کار رو وارد کن."
-            )
-
-            return True
-
-        session["phone"] = text
-        session["step"] = "address"
-
-        send_message(
-            chat_id,
-            "📍 لطفاً آدرس دقیق محل سکونت خودت رو وارد کن:"
-        )
-
-        return True
-
-    # -----------------------------------------
-    # آدرس دقیق محل سکونت
-    # -----------------------------------------
-
-    if step == "address":
-
-        text = message.get(
-            "text",
-            ""
-        ).strip()
-
-        if not text:
-
-            send_message(
-                chat_id,
-                "❌ لطفاً آدرس دقیق محل سکونت رو وارد کن."
-            )
-
-            return True
-
-        session["address"] = text
         session["step"] = "specialty"
 
         send_message(
@@ -798,6 +503,7 @@ def process_self_declaration(chat_id, message):
         )
 
         return True
+
     # -----------------------------------------
     # تخصص
     # -----------------------------------------
@@ -850,62 +556,15 @@ def process_self_declaration(chat_id, message):
             return True
 
         session["experience"] = text
-
-        # ساخت متن تعهد با اطلاعات واردشده
-        declaration_text = SELF_DECLARATION_TEXT
-
-        declaration_text = declaration_text.replace(
-            "[نام و نام خانوادگی]",
-            session["name"]
-        )
-
-        declaration_text = declaration_text.replace(
-            "[کد ملی]",
-            session["national_id"]
-        )
-
-        declaration_text = declaration_text.replace(
-            "[شماره تماس]",
-            session["phone"]
-        )
-
-        declaration_text = declaration_text.replace(
-            "[آدرس دقیق محل سکونت]",
-            session["address"]
-        )
-
-        declaration_text = declaration_text.replace(
-            "[نام تخصص]",
-            session["specialty"]
-        )
-
-        declaration_text = declaration_text.replace(
-            "[میزان سابقه]",
-            session["experience"]
-        )
-
-        session["step"] = "confirmation"
+        session["step"] = "photo"
 
         send_message(
             chat_id,
-            "📜 متن تعهد و خوداظهاری متخصص\n\n"
-            + declaration_text
-            + "\n\n"
-            "اگر متن رو کامل مطالعه کردی و قبولش داری، "
-            "دکمه زیر رو بزن:",
-            {
-                "keyboard": [
-                    [
-                        {
-                            "text": "✅ تأیید و ارسال"
-                        }
-                    ]
-                ],
-                "resize_keyboard": True
-            }
+            "📸 حالا یک عکس سلفی واضح از خودت ارسال کن."
         )
 
         return True
+
     # -----------------------------------------
     # عکس سلفی
     # -----------------------------------------
@@ -996,7 +655,7 @@ def process_self_declaration(chat_id, message):
             send_message(
                 chat_id,
                 "✅ اطلاعات خوداظهاری شما ثبت شد.\n\n"
-                "اطلاعات برای پشتیبانی آنی‌کار "
+                "اطلاعات و عکس برای پشتیبانی آنی‌کار "
                 "ارسال شد. 💛",
                 main_keyboard()
             )
