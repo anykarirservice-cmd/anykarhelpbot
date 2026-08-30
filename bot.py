@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 # تنظیمات Bale
 # =========================================================
 
-TOKEN = "977852941:qyI7kowjWCw6aSJCIsVZxL2rUem0g-HgGKc"
+TOKEN = "977852941:VxYGRdYZlZaUo7htQS4X5TZLk_VKRKWKnHg"
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
@@ -21,6 +21,7 @@ BALE_HOST = "tapi.bale.ai"
 
 # IP اعلام‌شده برای API بله
 BALE_NEW_IP = "2.189.68.110"
+
 
 # =========================================================
 # پشتیبانی
@@ -30,8 +31,12 @@ ADMIN_CHAT_ID = 121442435
 
 support_sessions = {}
 
-# =========================================================
 # فرم خوداظهاری متخصص
+self_declaration_sessions = {}
+
+
+# =========================================================
+# متن خوداظهاری متخصص
 # =========================================================
 
 SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
@@ -43,6 +48,8 @@ SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
 اینجانب آگاه هستم که صرف ثبت این خوداظهاری به منزله تأیید تخصص یا صلاحیت حرفه‌ای از سوی آنی‌کار نبوده و صحت ادعاها و مسئولیت عملکرد حرفه‌ای بر عهده اینجانب می‌باشد.
 
 ☑️ اینجانب متن فوق را به‌طور کامل مطالعه کرده و با تأیید آن، صحت اطلاعات و مسئولیت‌های مندرج در این تعهدنامه را می‌پذیرم."""
+
+
 # =========================================================
 # اجبار DNS بله روی IP مشخص
 # =========================================================
@@ -58,6 +65,7 @@ def _bale_getaddrinfo(
     proto=0,
     flags=0
 ):
+
     if host == BALE_HOST:
         host = BALE_NEW_IP
 
@@ -84,6 +92,13 @@ WORK_URL = "https://anykar.ir/work"
 CUSTOMER_RULES_URL = "https://anykar.ir/rules"
 SPECIALIST_RULES_URL = "https://anykar.ir/servicer-rules"
 SITE_URL = "https://anykar.ir"
+
+
+# =========================================================
+# آیدی ربات برای دعوت دوستان
+# =========================================================
+
+BOT_USERNAME = "@AnykarHelpBot"
 
 
 # =========================================================
@@ -223,47 +238,6 @@ def send_message(chat_id, text, keyboard=None):
         )
 
     return result
-# =========================================================
-# ارسال عکس
-# =========================================================
-
-def send_photo(chat_id, photo, caption=None):
-
-    data = {
-        "chat_id": chat_id,
-        "photo": photo
-    }
-
-    if caption:
-        data["caption"] = caption
-
-    result = api_request(
-        "sendPhoto",
-        data,
-        retries=3
-    )
-
-    if result is None:
-
-        print(
-            f"[SEND PHOTO FAILED] chat_id={chat_id}"
-        )
-
-    elif not result.get("ok"):
-
-        print(
-            f"[SEND PHOTO BALE ERROR] "
-            f"chat_id={chat_id} | "
-            f"{result}"
-        )
-
-    else:
-
-        print(
-            f"[SEND PHOTO OK] chat_id={chat_id}"
-        )
-
-    return result    
 
 
 # =========================================================
@@ -346,6 +320,10 @@ def main_keyboard():
             ],
 
             [
+                {"text": "👥 دعوت از دوستان"}
+            ],
+
+            [
                 {"text": "ℹ️ راهنما"}
             ]
         ],
@@ -373,14 +351,17 @@ def inline_button(text, url):
         ]
     }
 
+
 # =========================================================
-# فرم خوداظهاری متخصص
+# شروع فرم خوداظهاری
 # =========================================================
 
 def start_self_declaration(chat_id):
 
     self_declaration_sessions[chat_id] = {
+
         "step": "name",
+
         "name": "",
         "national_id": "",
         "phone": "",
@@ -394,7 +375,12 @@ def start_self_declaration(chat_id):
         "📝 خوداظهاری متخصص\n\n"
         "لطفاً نام و نام خانوادگی خودت رو وارد کن:"
     )
-    
+
+
+# =========================================================
+# ارسال خوداظهاری به ادمین
+# =========================================================
+
 def send_self_declaration_to_admin(chat_id):
 
     session = self_declaration_sessions.get(chat_id)
@@ -405,10 +391,6 @@ def send_self_declaration_to_admin(chat_id):
     current_time = time.strftime(
         "%Y/%m/%d - %H:%M:%S"
     )
-
-    # =====================================================
-    # جایگزینی اطلاعات متخصص داخل متن تعهد
-    # =====================================================
 
     declaration_text = SELF_DECLARATION_TEXT
 
@@ -442,11 +424,8 @@ def send_self_declaration_to_admin(chat_id):
         session["experience"]
     )
 
-    # =====================================================
-    # اطلاعات کامل برای ادمین
-    # =====================================================
-
     admin_text = (
+
         "📋 خوداظهاری متخصص جدید\n\n"
 
         "👤 نام و نام خانوادگی:\n"
@@ -473,15 +452,20 @@ def send_self_declaration_to_admin(chat_id):
         "🆔 شناسه بله:\n"
         f"{chat_id}\n\n"
 
-        "📜 متن تعهد:\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "📜 متن تعهد:\n\n"
         f"{declaration_text}"
     )
 
-    # ارسال اطلاعات کامل به ادمین
     send_message(
         ADMIN_CHAT_ID,
         admin_text
     )
+
+
+# =========================================================
+# پردازش فرم خوداظهاری
+# =========================================================
 
 def process_self_declaration(chat_id, message):
 
@@ -493,7 +477,7 @@ def process_self_declaration(chat_id, message):
     step = session["step"]
 
     # -----------------------------------------
-    # نام و نام خانوادگی
+    # نام
     # -----------------------------------------
 
     if step == "name":
@@ -513,6 +497,96 @@ def process_self_declaration(chat_id, message):
             return True
 
         session["name"] = text
+        session["step"] = "national_id"
+
+        send_message(
+            chat_id,
+            "🪪 لطفاً کد ملی خودت رو وارد کن:"
+        )
+
+        return True
+
+    # -----------------------------------------
+    # کد ملی
+    # -----------------------------------------
+
+    if step == "national_id":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً کد ملی رو وارد کن."
+            )
+
+            return True
+
+        session["national_id"] = text
+        session["step"] = "phone"
+
+        send_message(
+            chat_id,
+            "📱 لطفاً شماره تماس ثبت‌شده در آنی‌کار رو وارد کن:"
+        )
+
+        return True
+
+    # -----------------------------------------
+    # شماره تماس
+    # -----------------------------------------
+
+    if step == "phone":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً شماره تماس رو وارد کن."
+            )
+
+            return True
+
+        session["phone"] = text
+        session["step"] = "address"
+
+        send_message(
+            chat_id,
+            "📍 لطفاً آدرس دقیق محل سکونتت رو وارد کن:"
+        )
+
+        return True
+
+    # -----------------------------------------
+    # آدرس
+    # -----------------------------------------
+
+    if step == "address":
+
+        text = message.get(
+            "text",
+            ""
+        ).strip()
+
+        if not text:
+
+            send_message(
+                chat_id,
+                "❌ لطفاً آدرس دقیق محل سکونت رو وارد کن."
+            )
+
+            return True
+
+        session["address"] = text
         session["step"] = "specialty"
 
         send_message(
@@ -549,7 +623,7 @@ def process_self_declaration(chat_id, message):
 
         send_message(
             chat_id,
-            "⏱ میزان سابقه فعالیتت رو وارد کن:\n\n"
+            "⏱️ میزان سابقه فعالیتت رو وارد کن:\n\n"
             "مثلاً: ۵ سال"
         )
 
@@ -576,65 +650,67 @@ def process_self_declaration(chat_id, message):
             return True
 
         session["experience"] = text
-        session["step"] = "photo"
-
-        send_message(
-            chat_id,
-            "📸 حالا یک عکس سلفی واضح از خودت ارسال کن."
-        )
-
-        return True
-
-    # -----------------------------------------
-    # عکس سلفی
-    # -----------------------------------------
-
-    if step == "photo":
-
-        photos = message.get(
-            "photo",
-            []
-        )
-
-        if not photos:
-
-            send_message(
-                chat_id,
-                "📸 لطفاً عکس سلفی رو به صورت عکس ارسال کن."
-            )
-
-            return True
-
-        # بزرگ‌ترین نسخه عکس
-        photo = photos[-1]
-
-        session["photo_file_id"] = photo.get(
-            "file_id",
-            ""
-        )
-
         session["step"] = "confirmation"
 
+        declaration_text = SELF_DECLARATION_TEXT
+
+        declaration_text = declaration_text.replace(
+            "[نام و نام خانوادگی]",
+            session["name"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[کد ملی]",
+            session["national_id"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[شماره تماس]",
+            session["phone"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[آدرس دقیق محل سکونت]",
+            session["address"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[نام تخصص]",
+            session["specialty"]
+        )
+
+        declaration_text = declaration_text.replace(
+            "[میزان سابقه]",
+            session["experience"]
+        )
+
         send_message(
             chat_id,
+
             "📜 متن تعهد و خوداظهاری متخصص\n\n"
-            + SELF_DECLARATION_TEXT
+
+            + declaration_text
+
             + "\n\n"
             "اگر متن رو کامل مطالعه کردی و قبولش داری، "
             "دکمه زیر رو بزن:",
+
             {
                 "keyboard": [
+
                     [
                         {
                             "text": "✅ تأیید و ارسال"
                         }
                     ],
+
                     [
                         {
                             "text": "❌ انصراف"
                         }
                     ]
                 ],
+
                 "resize_keyboard": True
             }
         )
@@ -674,9 +750,11 @@ def process_self_declaration(chat_id, message):
 
             send_message(
                 chat_id,
+
                 "✅ اطلاعات خوداظهاری شما ثبت شد.\n\n"
-                "اطلاعات و عکس برای پشتیبانی آنی‌کار "
+                "اطلاعات برای پشتیبانی آنی‌کار "
                 "ارسال شد. 💛",
+
                 main_keyboard()
             )
 
@@ -691,7 +769,7 @@ def process_self_declaration(chat_id, message):
 
     return True
 
-    
+
 # =========================================================
 # مغز پاسخ‌گویی
 # =========================================================
@@ -717,6 +795,30 @@ def answer(text):
             "کار آنی‌کار راهنمایی‌تون کنم.\n\n"
             "سؤالتون رو همینجا بنویسید یا از منوی "
             "پایین استفاده کنید."
+        ), None
+
+
+    # دعوت از دوستان
+    if contains_any(text, [
+        "دعوت از دوستان",
+        "دعوت دوست",
+        "دعوت دوستان",
+        "اشتراک گذاری",
+        "اشتراک‌گذاری",
+        "اشتراک گذاری بات",
+        "اشتراک‌گذاری بات",
+        "بات رو برای دوست",
+        "ربات رو برای دوست"
+    ]):
+
+        return (
+            "👥 دعوت از دوستان\n\n"
+            "دستیار هوشمند آنی‌کار رو به دوستانت "
+            "معرفی کن. 💛\n\n"
+            "🤖 ربات آنی‌کار:\n"
+            f"{BOT_USERNAME}\n\n"
+            "می‌تونی همین پیام رو برای دوستانت "
+            "ارسال یا Forward کنی."
         ), None
 
 
@@ -2021,7 +2123,8 @@ def answer(text):
         "💰 قیمت خدمات\n"
         "💳 پرداخت و ضمانت\n"
         "📜 قوانین\n"
-        "🎧 پشتیبانی\n\n"
+        "🎧 پشتیبانی\n"
+        "👥 دعوت از دوستان\n\n"
         "یا سؤال خودتون رو با جزئیات بیشتری "
         "بنویسید."
     ), None
@@ -2212,12 +2315,17 @@ def main():
                         ""
                     )
 
+
                     # -----------------------------------------
                     # فرم خوداظهاری متخصص
                     # -----------------------------------------
 
                     if text == "📋 خوداظهاری متخصص":
-                        start_self_declaration(chat_id)
+
+                        start_self_declaration(
+                            chat_id
+                        )
+
                         continue
 
 
@@ -2226,28 +2334,39 @@ def main():
                     # -----------------------------------------
 
                     if chat_id in self_declaration_sessions:
+
                         process_self_declaration(
                             chat_id,
                             message
                         )
+
                         continue
+
 
                     print(
                         f"[MESSAGE] "
                         f"chat_id={chat_id} | "
                         f"text={repr(text)}"
                     )
+
+
+                    # -----------------------------------------
+                    # MY ID
+                    # -----------------------------------------
+
                     if text == "/myid":
+
                         send_message(
                             chat_id,
                             f"🆔 Chat ID شما:\n{chat_id}"
                         )
+
                         continue
 
-                    
-                    # ---------------------------------
+
+                    # -----------------------------------------
                     # START
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if text == "/start":
 
@@ -2274,9 +2393,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # ثبت سفارش
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if (
                         text == "📝 ثبت سفارش"
@@ -2303,9 +2422,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # همکاری متخصص
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if (
                         text == "👨‍🔧 همکاری متخصص"
@@ -2332,9 +2451,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # نحوه کار
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if text == "📱 نحوه کار":
 
@@ -2356,9 +2475,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # قیمت
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if text == "💰 قیمت خدمات":
 
@@ -2381,9 +2500,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # پرداخت و ضمانت
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if text == "🛡️ پرداخت و ضمانت":
 
@@ -2412,9 +2531,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # قوانین مشتری
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if text == "📜 قوانین مشتری":
 
@@ -2436,9 +2555,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # قوانین متخصص
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if text == "📋 قوانین متخصص":
 
@@ -2462,9 +2581,33 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
+                    # دعوت از دوستان
+                    # -----------------------------------------
+
+                    if text == "👥 دعوت از دوستان":
+
+                        invite_message = (
+                            "💛 دستیار هوشمند آنی‌کار\n\n"
+                            "برای دریافت راهنمایی درباره "
+                            "خدمات، ثبت سفارش و همکاری متخصصین، "
+                            "بات آنی‌کار رو ببین:\n\n"
+                            f"🤖 {BOT_USERNAME}\n\n"
+                            "این پیام رو می‌تونی برای دوستانت "
+                            "ارسال یا Forward کنی."
+                        )
+
+                        send_message(
+                            chat_id,
+                            invite_message
+                        )
+
+                        continue
+
+
+                    # -----------------------------------------
                     # پشتیبانی
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if (
                         text == "🎧 پشتیبانی"
@@ -2472,7 +2615,9 @@ def main():
                     ):
 
                         support_sessions[chat_id] = {
+
                             "step": "name",
+
                             "name": "",
                             "phone": "",
                             "service": "",
@@ -2482,22 +2627,28 @@ def main():
                         send_message(
                             chat_id,
                             "🎧 پشتیبانی آنی‌کار\n\n"
-                            "برای پیگیری، لطفاً نام و نام خانوادگی خود را وارد کنید."
+                            "برای پیگیری، لطفاً نام و نام خانوادگی "
+                            "خود را وارد کنید."
                         )
 
                         continue
-                      # ---------------------------------
+
+
+                    # -----------------------------------------
                     # ادامه فرآیند پشتیبانی
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if chat_id in support_sessions:
 
                         session = support_sessions[chat_id]
+
                         step = session["step"]
+
 
                         if step == "name":
 
                             session["name"] = text
+
                             session["step"] = "phone"
 
                             send_message(
@@ -2512,6 +2663,7 @@ def main():
                         if step == "phone":
 
                             session["phone"] = text
+
                             session["step"] = "service"
 
                             send_message(
@@ -2529,6 +2681,7 @@ def main():
                         if step == "service":
 
                             session["service"] = text
+
                             session["step"] = "problem"
 
                             send_message(
@@ -2545,15 +2698,21 @@ def main():
                             session["problem"] = text
 
                             support_message = (
+
                                 "🎧 درخواست پشتیبانی جدید\n\n"
+
                                 "👤 نام و نام خانوادگی:\n"
                                 f"{session['name']}\n\n"
+
                                 "📞 شماره تماس:\n"
                                 f"{session['phone']}\n\n"
+
                                 "🔧 خدمت:\n"
                                 f"{session['service']}\n\n"
+
                                 "📝 شرح مشکل:\n"
                                 f"{session['problem']}\n\n"
+
                                 "🆔 Chat ID کاربر:\n"
                                 f"{chat_id}"
                             )
@@ -2565,9 +2724,11 @@ def main():
 
                             send_message(
                                 chat_id,
+
                                 "✅ درخواست پشتیبانی شما ثبت شد.\n\n"
                                 "اطلاعات شما برای پشتیبانی آنی‌کار "
                                 "ارسال شد و در اولین فرصت بررسی می‌شود. 💛",
+
                                 keyboard
                             )
 
@@ -2575,9 +2736,10 @@ def main():
 
                             continue
 
-                    # ---------------------------------
+
+                    # -----------------------------------------
                     # FAQ
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if (
                         text == "❓ سوالات متداول"
@@ -2604,9 +2766,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # HELP
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     if (
                         text == "ℹ️ راهنما"
@@ -2624,7 +2786,8 @@ def main():
                             "🛡️ پرداخت و ضمانت\n"
                             "📜 قوانین مشتری\n"
                             "📋 قوانین متخصص\n"
-                            "🎧 پشتیبانی\n\n"
+                            "🎧 پشتیبانی\n"
+                            "👥 دعوت از دوستان\n\n"
                             "💬 حتی لازم نیست از منو استفاده کنی؛ "
                             "سؤالت رو آزادانه بنویس."
                         )
@@ -2638,9 +2801,9 @@ def main():
                         continue
 
 
-                    # ---------------------------------
+                    # -----------------------------------------
                     # پیام آزاد
-                    # ---------------------------------
+                    # -----------------------------------------
 
                     reply, button = answer(text)
 
@@ -2705,7 +2868,6 @@ if __name__ == "__main__":
 
         time.sleep(10)
 
-        # اگر خطای جدی رخ داد، دوباره main را اجرا کن
         while True:
 
             try:
