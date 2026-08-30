@@ -24,7 +24,6 @@ TOKEN = "977852941:VxYGRdYZlZaUo7htQS4X5TZLk_VKRKWKnHg"
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
 BALE_HOST = "tapi.bale.ai"
-
 BALE_NEW_IP = "2.189.68.110"
 
 
@@ -40,6 +39,9 @@ support_sessions = {}
 # =========================================================
 # فرم خوداظهاری متخصص
 # =========================================================
+
+self_declaration_sessions = {}
+
 
 SELF_DECLARATION_TEXT = """متن تعهد و خوداظهاری متخصص
 
@@ -77,6 +79,7 @@ def _bale_getaddrinfo(
     proto=0,
     flags=0
 ):
+
     if host == BALE_HOST:
         host = BALE_NEW_IP
 
@@ -108,7 +111,7 @@ BOT_USERNAME = "@anykarhelpbot"
 
 
 # =========================================================
-# API REQUEST مقاوم
+# API REQUEST
 # =========================================================
 
 def api_request(method, data=None, retries=3):
@@ -165,11 +168,6 @@ def api_request(method, data=None, retries=3):
             if attempt < retries:
 
                 wait_time = attempt * 3
-
-                print(
-                    f"[API] retry after "
-                    f"{wait_time}s"
-                )
 
                 time.sleep(wait_time)
 
@@ -247,46 +245,148 @@ def send_message(chat_id, text, keyboard=None):
 
 
 # =========================================================
-# ارسال عکس
+# ارسال عکس به Bale
 # =========================================================
 
 def send_photo(chat_id, photo, caption=None):
 
-    data = {
-        "chat_id": chat_id,
-        "photo": photo
-    }
+    url = f"{BASE_URL}/sendPhoto"
 
-    if caption:
-        data["caption"] = caption
+    for attempt in range(1, 4):
 
-    result = api_request(
-        "sendPhoto",
-        data,
-        retries=3
+        try:
+
+            boundary = (
+                "----AnykarBoundary"
+                + uuid.uuid4().hex
+            )
+
+            body = bytearray()
+
+            # ---------------------------------------------
+            # chat_id
+            # ---------------------------------------------
+
+            body.extend(
+                (
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; '
+                    f'name="chat_id"\r\n'
+                    f"\r\n"
+                    f"{chat_id}\r\n"
+                ).encode("utf-8")
+            )
+
+            # ---------------------------------------------
+            # caption
+            # ---------------------------------------------
+
+            if caption:
+
+                body.extend(
+                    (
+                        f"--{boundary}\r\n"
+                        f'Content-Disposition: form-data; '
+                        f'name="caption"\r\n'
+                        f"\r\n"
+                        f"{caption}\r\n"
+                    ).encode("utf-8")
+                )
+
+            # ---------------------------------------------
+            # photo
+            # ---------------------------------------------
+
+            body.extend(
+                (
+                    f"--{boundary}\r\n"
+                    f'Content-Disposition: form-data; '
+                    f'name="photo"; '
+                    f'filename="self_declaration.jpg"\r\n'
+                    f"Content-Type: image/jpeg\r\n"
+                    f"\r\n"
+                ).encode("utf-8")
+            )
+
+            body.extend(photo)
+
+            body.extend(
+                (
+                    f"\r\n"
+                    f"--{boundary}--\r\n"
+                ).encode("utf-8")
+            )
+
+            # ---------------------------------------------
+            # request جدید برای هر تلاش
+            # ---------------------------------------------
+
+            request = urllib.request.Request(
+                url,
+                data=bytes(body),
+                headers={
+                    "Content-Type":
+                        f"multipart/form-data; "
+                        f"boundary={boundary}",
+                    "User-Agent":
+                        "AnykarHelpBot/1.0"
+                },
+                method="POST"
+            )
+
+            print(
+                f"[PHOTO API] attempt={attempt}"
+            )
+
+            with urllib.request.urlopen(
+                request,
+                timeout=35
+            ) as response:
+
+                raw = response.read().decode(
+                    "utf-8"
+                )
+
+                result = json.loads(raw)
+
+                print(
+                    f"[PHOTO API RESULT] {result}"
+                )
+
+                if result.get("ok"):
+
+                    print(
+                        f"[SEND PHOTO OK] "
+                        f"chat_id={chat_id}"
+                    )
+
+                    return result
+
+                print(
+                    f"[SEND PHOTO BALE ERROR] "
+                    f"{result}"
+                )
+
+        except Exception as e:
+
+            print(
+                f"[SEND PHOTO ERROR] "
+                f"attempt={attempt} | "
+                f"{repr(e)}"
+            )
+
+        if attempt < 3:
+
+            time.sleep(
+                attempt * 3
+            )
+
+    print(
+        f"[SEND PHOTO FAILED] "
+        f"chat_id={chat_id}"
     )
 
-    if result is None:
-
-        print(
-            f"[SEND PHOTO FAILED] chat_id={chat_id}"
-        )
-
-    elif not result.get("ok"):
-
-        print(
-            f"[SEND PHOTO BALE ERROR] "
-            f"chat_id={chat_id} | "
-            f"{result}"
-        )
-
-    else:
-
-        print(
-            f"[SEND PHOTO OK] chat_id={chat_id}"
-        )
-
-    return result
+    return None
 
 
 # =========================================================
@@ -346,7 +446,6 @@ def create_self_declaration_image(
     # -----------------------------------------------------
 
     width = 1654
-
     margin = 110
 
     title_font = ImageFont.truetype(
@@ -404,7 +503,7 @@ def create_self_declaration_image(
     )
 
     # -----------------------------------------------------
-    # محاسبه ارتفاع
+    # ارتفاع
     # -----------------------------------------------------
 
     line_height = 52
@@ -425,7 +524,6 @@ def create_self_declaration_image(
         + margin
     )
 
-    # حداقل ارتفاع A4
     height = max(
         height,
         2339
@@ -455,7 +553,9 @@ def create_self_declaration_image(
         font=title_font
     )
 
-    title_width = bbox[2] - bbox[0]
+    title_width = (
+        bbox[2] - bbox[0]
+    )
 
     draw.text(
         (
@@ -539,7 +639,7 @@ def create_self_declaration_image(
         info_y += 40
 
     # -----------------------------------------------------
-    # شروع متن اصلی
+    # متن اصلی
     # -----------------------------------------------------
 
     body_y = header_height
@@ -593,7 +693,7 @@ def create_self_declaration_image(
     )
 
     # -----------------------------------------------------
-    # خروجی در حافظه
+    # خروجی JPEG در حافظه
     # -----------------------------------------------------
 
     output = io.BytesIO()
@@ -616,9 +716,16 @@ def create_self_declaration_image(
 
 def send_self_declaration_to_admin(chat_id):
 
-    session = self_declaration_sessions.get(chat_id)
+    session = self_declaration_sessions.get(
+        chat_id
+    )
 
     if not session:
+
+        print(
+            "[SELF DECLARATION] "
+            "Session not found."
+        )
 
         return False
 
@@ -636,8 +743,13 @@ def send_self_declaration_to_admin(chat_id):
         )
 
         # -------------------------------------------------
-        # ساخت عکس
+        # ساخت عکس از متن
         # -------------------------------------------------
+
+        print(
+            "[SELF DECLARATION] "
+            "Creating image..."
+        )
 
         image_file = create_self_declaration_image(
             session,
@@ -662,8 +774,13 @@ def send_self_declaration_to_admin(chat_id):
         )
 
         # -------------------------------------------------
-        # ارسال عکس به ادمین
+        # ارسال عکس
         # -------------------------------------------------
+
+        print(
+            "[SELF DECLARATION] "
+            "Sending image to admin..."
+        )
 
         result = send_photo(
             ADMIN_CHAT_ID,
@@ -672,7 +789,7 @@ def send_self_declaration_to_admin(chat_id):
         )
 
         # -------------------------------------------------
-        # بررسی ارسال
+        # بررسی نتیجه
         # -------------------------------------------------
 
         if result is None or not result.get("ok"):
@@ -829,7 +946,7 @@ def invite_friends(chat_id):
 
 
 # =========================================================
-# فرم خوداظهاری متخصص
+# شروع خوداظهاری
 # =========================================================
 
 def start_self_declaration(chat_id):
@@ -851,9 +968,18 @@ def start_self_declaration(chat_id):
     )
 
 
-def process_self_declaration(chat_id, message):
+# =========================================================
+# پردازش خوداظهاری
+# =========================================================
 
-    session = self_declaration_sessions.get(chat_id)
+def process_self_declaration(
+    chat_id,
+    message
+):
+
+    session = self_declaration_sessions.get(
+        chat_id
+    )
 
     if not session:
 
@@ -1043,9 +1169,9 @@ def process_self_declaration(chat_id, message):
 
         session["step"] = "confirmation"
 
-        # -------------------------------------------------
-        # متن شخصی‌سازی‌شده برای نمایش قبل از تأیید
-        # -------------------------------------------------
+        # -----------------------------------------
+        # ساخت متن پیش‌نمایش
+        # -----------------------------------------
 
         declaration_preview = SELF_DECLARATION_TEXT
 
@@ -1116,9 +1242,15 @@ def process_self_declaration(chat_id, message):
             ""
         ).strip()
 
+        # -----------------------------------------
+        # انصراف
+        # -----------------------------------------
+
         if text == "❌ انصراف":
 
-            del self_declaration_sessions[chat_id]
+            del self_declaration_sessions[
+                chat_id
+            ]
 
             send_message(
                 chat_id,
@@ -1128,23 +1260,35 @@ def process_self_declaration(chat_id, message):
 
             return True
 
+        # -----------------------------------------
+        # تأیید و ارسال
+        # -----------------------------------------
+
         if text == "✅ تأیید و ارسال":
 
-            # ---------------------------------------------
-            # اول عکس ساخته و برای ادمین ارسال می‌شود
-            # ---------------------------------------------
+            print(
+                f"[SELF DECLARATION] "
+                f"User confirmed | chat_id={chat_id}"
+            )
+
+            # -----------------------------------------
+            # اول:
+            # متن → عکس → ارسال به ادمین
+            # -----------------------------------------
 
             success = send_self_declaration_to_admin(
                 chat_id
             )
 
-            # ---------------------------------------------
-            # فقط بعد از اتمام عملیات فرم پاک شود
-            # ---------------------------------------------
+            # -----------------------------------------
+            # فقط اگر عکس با موفقیت ارسال شد
+            # -----------------------------------------
 
             if success:
 
-                del self_declaration_sessions[chat_id]
+                del self_declaration_sessions[
+                    chat_id
+                ]
 
                 send_message(
                     chat_id,
@@ -1159,8 +1303,8 @@ def process_self_declaration(chat_id, message):
                 send_message(
                     chat_id,
                     "⚠️ هنگام ارسال خوداظهاری مشکلی پیش آمد.\n\n"
-                    "لطفاً چند لحظه بعد دوباره "
-                    "گزینه «✅ تأیید و ارسال» رو بزن."
+                    "اطلاعات شما حذف نشده است.\n"
+                    "لطفاً دوباره روی «✅ تأیید و ارسال» بزن."
                 )
 
             return True
@@ -2483,7 +2627,11 @@ class HealthHandler(BaseHTTPRequestHandler):
             b"AnykarHelpBot is running"
         )
 
-    def log_message(self, format, *args):
+    def log_message(
+        self,
+        format,
+        *args
+    ):
 
         return
 
@@ -2925,7 +3073,9 @@ def main():
 
                     if chat_id in support_sessions:
 
-                        session = support_sessions[chat_id]
+                        session = support_sessions[
+                            chat_id
+                        ]
 
                         step = session["step"]
 
@@ -3005,7 +3155,9 @@ def main():
                                 keyboard
                             )
 
-                            del support_sessions[chat_id]
+                            del support_sessions[
+                                chat_id
+                            ]
 
                             continue
 
@@ -3074,7 +3226,9 @@ def main():
                     # پیام آزاد
                     # -----------------------------------------
 
-                    reply, button = answer(text)
+                    reply, button = answer(
+                        text
+                    )
 
                     send_message(
                         chat_id,
