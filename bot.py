@@ -2822,25 +2822,43 @@ def main():
 
                     if text == "/start":
 
-                        reply = (
-                            "╭──────────────╮\n"
-                            "      💛 ANYKAR\n"
-                            "   دستیار هوشمند آنی‌کار\n"
-                            "╰──────────────╯\n\n"
-                            "سلام 👋\n"
-                            "به دستیار هوشمند آنی‌کار خوش اومدی.\n\n"
-                            "اینجام تا درباره خدمات، ثبت سفارش، "
-                            "متخصصین، پرداخت، ضمانت و قوانین "
-                            "راهنمایی‌ات کنم.\n\n"
-                            "💬 سؤالت رو مستقیم بنویس\n"
-                            "یا یکی از گزینه‌های زیر رو انتخاب کن."
-                        )
+                        try:
 
-                        send_message(
-                            chat_id,
-                            reply,
-                            keyboard
-                        )
+                            with open(
+                                os.path.join(
+                                    os.path.dirname(
+                                        os.path.abspath(__file__)
+                                    ),
+                                    "welcome.jpg"
+                                ),
+                                "rb"
+                            ) as photo:
+
+                                send_photo(
+                                    chat_id,
+                                    photo.read()
+                                )
+
+                            send_message(
+                                chat_id,
+                                "👋 خوش اومدی به آنی‌کار 💛\n\n"
+                                "برای شروع، یکی از گزینه‌های زیر رو انتخاب کن.",
+                                keyboard
+                            )
+
+                        except Exception as e:
+
+                            print(
+                                "[WELCOME IMAGE ERROR]",
+                                repr(e)
+                            )
+
+                            send_message(
+                                chat_id,
+                                "سلام 👋\n"
+                                "به دستیار هوشمند آنی‌کار خوش اومدی.",
+                                keyboard
+                            )
 
                         continue
 
