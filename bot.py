@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 # ØªÙ†Ø¸ÛŒÙ…Ø§Øª Bale
 # =========================================================
 
-TOKEN = "  "
+TOKEN = "977852941:VxYGRdYZlZaUo7htQS4X5TZLk_VKRKWKnHg"
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
@@ -34,8 +34,7 @@ BALE_NEW_IP = "2.189.68.110"
 ADMIN_CHAT_ID = 121442435
 
 support_sessions = {}
-
-
+                   
 # =========================================================
 # ÙØ±Ù… Ø®ÙˆØ¯Ø§Ø¸Ù‡Ø§Ø±ÛŒ Ù…ØªØ®ØµØµ
 # =========================================================
