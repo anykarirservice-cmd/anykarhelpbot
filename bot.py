@@ -108,10 +108,6 @@ SPECIALIST_RULES_URL = "https://anykar.ir/servicer-rules"
 SITE_URL = "https://anykar.ir"
 
 BOT_USERNAME = "@anykarhelpbot"
-BOT_URL = "https://ble.ir/anykarhelpbot"
-
-CHANNEL_USERNAME = "@anykar"
-CHANNEL_URL = "https://ble.ir/anykar"
 
 
 # =========================================================
@@ -251,41 +247,6 @@ def send_message(chat_id, text, keyboard=None):
 # =========================================================
 # ارسال عکس به Bale
 # =========================================================
-
-def get_channel_membership_status(user_id):
-
-    result = api_request(
-        "getChatMember",
-        {
-            "chat_id": CHANNEL_USERNAME,
-            "user_id": user_id
-        },
-        retries=3
-    )
-
-    if not result or not result.get("ok"):
-        print(
-            f"[CHANNEL CHECK ERROR] "
-            f"user_id={user_id} | result={result}"
-        )
-        return None
-
-    member = result.get("result", {})
-    status = member.get("status")
-
-    print(
-        f"[CHANNEL CHECK] "
-        f"user_id={user_id} | status={status}"
-    )
-
-    if status in ("member", "administrator", "creator"):
-        return True
-
-    if status == "restricted":
-        return bool(member.get("is_member"))
-
-    return False
-
 
 def send_photo(chat_id, photo, caption=None):
 
@@ -974,35 +935,14 @@ def invite_friends(chat_id):
 
     return (
         "👥 دعوت از دوستان\n\n"
-        "آنی‌کار رو به دوستات معرفی کن 💛\n\n"
-        "🤖 بات آنی‌کار:\n"
-        f"{BOT_URL}\n\n"
-        "می‌تونی همین پیام رو برای دوستات فوروارد کنی."
+        "اگر فکر می‌کنی آنی‌کار برای دوستات هم "
+        "مفیده، می‌تونی بات آنی‌کار رو براشون "
+        "ارسال کنی.\n\n"
+        "🤖 آیدی بات:\n"
+        "@anykarhelpbot\n\n"
+        "روی دکمه زیر بزن و بات رو برای دوستانت "
+        "به اشتراک بذار. 💛"
     )
-
-
-# =========================================================
-# نمایش منوی اصلی + لینک کانال
-# =========================================================
-
-def send_main_menu(chat_id, keyboard=None):
-
-    send_message(
-        chat_id,
-        "📢 برای اطلاع از آخرین اخبار و اطلاعیه‌های آنی‌کار، "
-        "می‌تونی عضو کانالمون بشی. 💛",
-        inline_button(
-            "📢 عضویت در کانال آنی‌کار",
-            CHANNEL_URL
-        )
-    )
-
-    send_message(
-        chat_id,
-        "👇 یکی از گزینه‌های زیر رو انتخاب کن:",
-        keyboard if keyboard else main_keyboard()
-    )
-
 
 
 # =========================================================
@@ -2838,35 +2778,6 @@ def main():
 
                     if text == "📋 خوداظهاری متخصص":
 
-                        membership = get_channel_membership_status(
-                            chat_id
-                        )
-
-                        if membership is None:
-
-                            send_message(
-                                chat_id,
-                                "⚠️ بررسی عضویت در کانال انجام نشد.\n\n"
-                                "لطفاً چند لحظه بعد دوباره تلاش کن."
-                            )
-
-                            continue
-
-                        if not membership:
-
-                            send_message(
-                                chat_id,
-                                "📢 برای انجام خوداظهاری متخصص، ابتدا باید "
-                                "در کانال آنی‌کار عضو بشی.\n\n"
-                                "بعد از عضویت، دوباره روی «📋 خوداظهاری متخصص» بزن.",
-                                inline_button(
-                                    "📢 عضویت در کانال آنی‌کار",
-                                    CHANNEL_URL
-                                )
-                            )
-
-                            continue
-
                         start_self_declaration(
                             chat_id
                         )
@@ -2930,11 +2841,8 @@ def main():
 
                             send_message(
                                 chat_id,
-                                "👋 خوش اومدی به آنی‌کار 💛"
-                            )
-
-                            send_main_menu(
-                                chat_id,
+                                "👋 خوش اومدی به آنی‌کار 💛\n\n"
+                                "برای شروع، یکی از گزینه‌های زیر رو انتخاب کن.",
                                 keyboard
                             )
 
@@ -2948,11 +2856,7 @@ def main():
                             send_message(
                                 chat_id,
                                 "سلام 👋\n"
-                                "به دستیار هوشمند آنی‌کار خوش اومدی."
-                            )
-
-                            send_main_menu(
-                                chat_id,
+                                "به دستیار هوشمند آنی‌کار خوش اومدی.",
                                 keyboard
                             )
 
@@ -2968,8 +2872,8 @@ def main():
                             chat_id,
                             invite_friends(chat_id),
                             inline_button(
-                                "🤖 ورود به بات آنی‌کار",
-                                BOT_URL
+                                "🤖 باز کردن بات آنی‌کار",
+                                "https://ble.ir/anykarhelpbot"
                             )
                         )
 
@@ -3265,11 +3169,7 @@ def main():
                                 chat_id,
                                 "✅ درخواست پشتیبانی شما ثبت شد.\n\n"
                                 "اطلاعات شما برای پشتیبانی آنی‌کار "
-                                "ارسال شد و در اولین فرصت بررسی می‌شود. 💛"
-                            )
-
-                            send_main_menu(
-                                chat_id,
+                                "ارسال شد و در اولین فرصت بررسی می‌شود. 💛",
                                 keyboard
                             )
 
@@ -3299,8 +3199,9 @@ def main():
                             "«ضمانت کار چطوره؟»"
                         )
 
-                        send_main_menu(
+                        send_message(
                             chat_id,
+                            reply,
                             keyboard
                         )
 
@@ -3331,8 +3232,9 @@ def main():
                             "سؤالت رو آزادانه بنویس."
                         )
 
-                        send_main_menu(
+                        send_message(
                             chat_id,
+                            reply,
                             keyboard
                         )
 
