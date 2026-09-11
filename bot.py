@@ -24,7 +24,6 @@ TOKEN = "977852941:L5tGEYBi_uDikwrkGi_6jtCQc97CYp-W-jE"
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
 BALE_HOST = "tapi.bale.ai"
-BALE_NEW_IP = ######
 
 
 # =========================================================
@@ -62,16 +61,6 @@ FONT_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "Vazirmatn-Regulr.ttf"
 )
-
-
-# =========================================================
-# اجبار DNS بله روی IP مشخص
-# =========================================================
-
-######
-
-
-########
 
 
 # =========================================================
