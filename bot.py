@@ -21,7 +21,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 TOKEN = "977852941:RAdOSkEqo51lI3LnZCCeVxe__3M-GCsd8OM"
 
-BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
+BASE_URL = f"https://tapi.bale.ai/bot:{TOKEN}"
 
 BALE_HOST = "tapi.bale.ai"
 BALE_NEW_IP = "2.189.68.110"
