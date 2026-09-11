@@ -24,7 +24,7 @@ TOKEN = "977852941:L5tGEYBi_uDikwrkGi_6jtCQc97CYp-W-jE"
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
 BALE_HOST = "tapi.bale.ai"
-BALE_NEW_IP = "2.189.68.110"
+BALE_NEW_IP = ######
 
 
 # =========================================================
@@ -68,32 +68,10 @@ FONT_PATH = os.path.join(
 # اجبار DNS بله روی IP مشخص
 # =========================================================
 
-_original_getaddrinfo = socket.getaddrinfo
+######
 
 
-def _bale_getaddrinfo(
-    host,
-    port,
-    family=0,
-    type=0,
-    proto=0,
-    flags=0
-):
-
-    if host == BALE_HOST:
-        host = BALE_NEW_IP
-
-    return _original_getaddrinfo(
-        host,
-        port,
-        family,
-        type,
-        proto,
-        flags
-    )
-
-
-socket.getaddrinfo = _bale_getaddrinfo
+########
 
 
 # =========================================================
