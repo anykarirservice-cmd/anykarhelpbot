@@ -19,7 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 # تنظیمات Bale
 # =========================================================
 
-TOKEN = "977852941:VxYGRdYZlZaUo7htQS4X5TZLk_VKRKWKnHg"
+TOKEN = "977852941:L5tGEYBi_uDikwrkGi_6jtCQc97CYp-W-jE"
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
