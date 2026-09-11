@@ -19,10 +19,12 @@ from PIL import Image, ImageDraw, ImageFont
 # تنظیمات Bale
 # =========================================================
 
-TOKEN = "977852941:L5tGEYBi_uDikwrkGi_6jtCQc97CYp-W-jE"
+TOKEN = "977852941:RAdOSkEqo51lI3LnZCCeVxe__3M-GCsd8OM"
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
+BALE_HOST = "tapi.bale.ai"
+BALE_NEW_IP = "2.189.68.110"
 
 
 # =========================================================
@@ -60,6 +62,38 @@ FONT_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "Vazirmatn-Regulr.ttf"
 )
+
+
+# =========================================================
+# اجبار DNS بله روی IP مشخص
+# =========================================================
+
+_original_getaddrinfo = socket.getaddrinfo
+
+
+def _bale_getaddrinfo(
+    host,
+    port,
+    family=0,
+    type=0,
+    proto=0,
+    flags=0
+):
+
+    if host == BALE_HOST:
+        host = BALE_NEW_IP
+
+    return _original_getaddrinfo(
+        host,
+        port,
+        family,
+        type,
+        proto,
+        flags
+    )
+
+
+socket.getaddrinfo = _bale_getaddrinfo
 
 
 # =========================================================
@@ -123,26 +157,22 @@ def api_request(method, data=None, retries=3):
 
                 return result
 
-        except urllib.error.HTTPError as e:
-            try:
-                error_body = e.read().decode("utf-8", errors="replace")
-            except Exception:
-                error_body = "Unable to read HTTP error body"
+        except Exception as e:
 
             print(
-                f"[API HTTP ERROR] {method} | "
+                f"[API ERROR] {method} | "
                 f"attempt={attempt} | "
-                f"status={e.code} | "
-                f"reason={e.reason}"
-            )
-            print(
-                f"[API HTTP ERROR BODY] {error_body}"
+                f"{repr(e)}"
             )
 
             if attempt < retries:
+
                 wait_time = attempt * 3
+
                 time.sleep(wait_time)
+
             else:
+
                 print(
                     f"[API] {method} failed "
                     f"after {retries} attempts"
