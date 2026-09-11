@@ -2762,6 +2762,8 @@ def main():
                     chat_id = chat.get(
                         "id"
                     )
+                    
+                    print(f"🔥 CHAT DEBUG → chat_id={chat_id} | chat={chat}")
 
                     if chat_id is None:
 
