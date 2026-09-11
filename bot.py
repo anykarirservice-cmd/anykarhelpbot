@@ -157,22 +157,26 @@ def api_request(method, data=None, retries=3):
 
                 return result
 
-        except Exception as e:
+        except urllib.error.HTTPError as e:
+            try:
+                error_body = e.read().decode("utf-8", errors="replace")
+            except Exception:
+                error_body = "Unable to read HTTP error body"
 
             print(
-                f"[API ERROR] {method} | "
+                f"[API HTTP ERROR] {method} | "
                 f"attempt={attempt} | "
-                f"{repr(e)}"
+                f"status={e.code} | "
+                f"reason={e.reason}"
+            )
+            print(
+                f"[API HTTP ERROR BODY] {error_body}"
             )
 
             if attempt < retries:
-
                 wait_time = attempt * 3
-
                 time.sleep(wait_time)
-
             else:
-
                 print(
                     f"[API] {method} failed "
                     f"after {retries} attempts"
