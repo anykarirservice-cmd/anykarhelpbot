@@ -23,7 +23,6 @@ TOKEN = "977852941:L5tGEYBi_uDikwrkGi_6jtCQc97CYp-W-jE"
 
 BASE_URL = f"https://tapi.bale.ai/bot{TOKEN}"
 
-BALE_HOST = "tapi.bale.ai"
 
 
 # =========================================================
