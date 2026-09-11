@@ -2762,6 +2762,9 @@ def main():
                     chat_id = chat.get(
                         "id"
                     )
+                    if chat.get("type") != "private":
+                        continue
+
                     
                     print(f"🔥 CHAT DEBUG → chat_id={chat_id} | chat={chat}")
 
