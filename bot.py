@@ -314,7 +314,7 @@ def send_photo(chat_id, photo, caption=None):
                     (
                         f"--{boundary}\r\n"
                         f'Content-Disposition: form-data; '
-                        f'name="caption"\r\n
+                        f'name="caption"\r\n'
                         f"\r\n"
                         f"{caption}\r\n"
                     ).encode("utf-8")
